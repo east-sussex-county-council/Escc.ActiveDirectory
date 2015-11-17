@@ -52,46 +52,26 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// member to hold current culture info
         /// </summary>
-        private CultureInfo culture;
-        private Collection<string> propertiesToLoad;
-        private int maximumResults;
+        private CultureInfo culture = CultureInfo.CurrentCulture;
 
         #endregion
         #region constructors, destructors and initialisers
+
         /// <summary>
-        /// Class constructor
+        /// Initializes a new instance of the <see cref="ADSearcher"/> class.
         /// </summary>
         public ADSearcher()
         {
             ADUser = ConfigurationManager.AppSettings["ActiveDirectoryUser"];
             ADPassword = ConfigurationManager.AppSettings["ADPassword"];
             LDAPPath = ConfigurationManager.AppSettings["LDAPPath"];
-            culture = CultureInfo.CurrentCulture;
-            this.propertiesToLoad = new Collection<string>();
-            this.maximumResults = 0;
         }
         #endregion
-
-        #region Public properties
-
-        /// <summary>
-        /// Restricts the properties to load when searching for AD users. If collection is empty, all properties are loaded.
-        /// </summary>
-        public Collection<string> PropertiesToLoad
-        {
-            get { return propertiesToLoad; }
-        }
 
         /// <summary>
         /// Gets or sets the maximum number of results to return (to speed up large queries)
         /// </summary>
-        public int MaximumResults
-        {
-            get { return this.maximumResults; }
-            set { this.maximumResults = value; }
-        }
-
-        #endregion
+        public int MaximumResults { get; set; }
 
         #region public methods
         /// <summary>
@@ -128,15 +108,17 @@ namespace Escc.ActiveDirectory
             WindowsPrincipal wp = new WindowsPrincipal(wi);
             return wp.IsInRole(domainGroup);
         }
+
         /// <summary>
         /// Gets an Active Directory user based on logon name.
         /// </summary>
         /// <param name="accountName">user logon name</param>
+        /// <param name="propertiesToLoad">Restricts the properties to load when searching for AD users. If collection is empty, all properties are loaded.</param>
         /// <returns>A single ActiveDirectoryUser object containing most properties associated with an AD user object, or <c>null</c> if not found.</returns>
-        public ActiveDirectoryUser GetUserBySamAccountName(string accountName)
+        public ActiveDirectoryUser GetUserBySamAccountName(string accountName, IList<string> propertiesToLoad)
         {
             searchBylogonFlag = true;
-            SearchForUsers(accountName);
+            SearchForUsers(accountName, propertiesToLoad);
             searchBylogonFlag = false;
 
             foreach (ActiveDirectoryUser user in this.userCollection)
@@ -155,80 +137,82 @@ namespace Escc.ActiveDirectory
         }
 
         /// <summary>
-        /// Searches AD based on a partial username. If you have a full username use <seealso cref="GetUserBySamAccountName"/> instead.
+        /// Searches AD based on a partial username. If you have a full username use <seealso cref="GetUserBySamAccountName" /> instead.
         /// </summary>
         /// <param name="searchText">Part of an AD username</param>
-        /// <returns>A collection of users with matching account names</returns>
-        public Collection<ActiveDirectoryUser> SearchForUsersBySamAccountName(string searchText)
+        /// <param name="propertiesToLoad">Restricts the properties to load when searching for AD users. If collection is empty, all properties are loaded.</param>
+        /// <returns>
+        /// A collection of users with matching account names
+        /// </returns>
+        public Collection<ActiveDirectoryUser> SearchForUsersBySamAccountName(string searchText, IList<string> propertiesToLoad)
         {
             this.searchBylogonFlag = true;
-            var users = this.SearchForUsers(searchText);
+            var users = this.SearchForUsers(searchText, propertiesToLoad);
             this.searchBylogonFlag = false;
             return users;
         }
         /// <summary>
         /// Performs a search for AD users using ambiguous name resolution (i.e. searches can be done using partial names).
         /// </summary>
-        /// <param name="searchText"></param>
-        /// <returns>An collection containing multiple ActiveDirectoryUser objects.</returns>
-        public Collection<ActiveDirectoryUser> SearchForUsers(string searchText)
+        /// <param name="searchText">The search text.</param>
+        /// <param name="propertiesToLoad">Restricts the properties to load when searching for AD users. If collection is empty, all properties are loaded.</param>
+        /// <returns>
+        /// An collection containing multiple ActiveDirectoryUser objects.
+        /// </returns>
+        public Collection<ActiveDirectoryUser> SearchForUsers(string searchText, IList<string> propertiesToLoad)
         {
             this.userCollection = new Collection<ActiveDirectoryUser>();
-            DirectoryEntry ent = new DirectoryEntry(LDAPPath);
-            ent.Username = this.ADUser;
-            ent.Password = this.ADPassword;
-            DirectorySearcher ds = new DirectorySearcher();
-            ds.SearchRoot = ent;
-            if (searchBylogonFlag)
+            using (var ent = new DirectoryEntry(LDAPPath))
             {
-                ds.Filter = "(&(saMAccountName=" + searchText + ")(objectClass=user)(objectCategory=Person))";
-            }
-            else
-            {
-                ds.Filter = "(&(anr=" + searchText + ")(objectClass=user)(objectCategory=Person))";
-            }
-
-            // If possible, restrict the properties to load to make the query faster
-            if (this.propertiesToLoad.Count > 0)
-            {
-                string[] propertyNames = new string[this.propertiesToLoad.Count];
-                this.propertiesToLoad.CopyTo(propertyNames, 0);
-                ds.PropertiesToLoad.AddRange(propertyNames);
-            }
-
-            // Restrict the size too, again to make it faster
-            if (this.maximumResults > 0) ds.SizeLimit = this.maximumResults;
-
-            try
-            {
-                SearchResultCollection src = ds.FindAll();
-
-                if (src.Count > 0)
+                ent.Username = this.ADUser;
+                ent.Password = this.ADPassword;
+                using (DirectorySearcher ds = new DirectorySearcher())
                 {
-                    CreateUserCollection(src);
-                }
-                if (src.Count > 1)
-                {
-                    OnUsersFound();
-                }
-                if (src.Count == 1)
-                {
-                    OnUserFound();
-                }
-                if (src == null || src.Count == 0)
-                {
+                    ds.SearchRoot = ent;
+                    if (searchBylogonFlag)
+                    {
+                        ds.Filter = "(&(saMAccountName=" + searchText + ")(objectClass=user)(objectCategory=Person))";
+                    }
+                    else
+                    {
+                        ds.Filter = "(&(anr=" + searchText + ")(objectClass=user)(objectCategory=Person))";
+                    }
 
-                }
-            }
-            catch
-            {
-                throw;
-            }
-            finally
-            {
+                    // If possible, restrict the properties to load to make the query faster
+                    string[] propertyNames = null;
 
-                ds.Dispose();
-                ent.Close();
+                    if (propertiesToLoad!= null && propertiesToLoad.Count > 0)
+                    {
+                        propertyNames = new string[propertiesToLoad.Count];
+                        propertiesToLoad.CopyTo(propertyNames, 0);
+                        ds.PropertiesToLoad.AddRange(propertyNames);
+                    }
+
+                    // Restrict the size too, again to make it faster
+                    if (this.MaximumResults > 0) ds.SizeLimit = this.MaximumResults;
+
+                    SearchResultCollection results = ds.FindAll();
+
+                    if (results.Count > 0)
+                    {
+                        if (propertyNames != null && propertyNames.Length > 0)
+                        {
+                            CreateUserCollection(results, propertyNames);
+                        }
+                        else
+                        {
+                            CreateUserCollectionAllProperties(results);
+                        }
+                    }
+                    if (results.Count > 1)
+                    {
+                        OnUsersFound();
+                    }
+                    if (results.Count == 1)
+                    {
+                        OnUserFound();
+                    }
+                }
             }
             return this.userCollection;
         }
@@ -241,6 +225,7 @@ namespace Escc.ActiveDirectory
         {
             searchByGroupNameFlag = true;
             SearchForGroups(groupName);
+            searchByGroupNameFlag = false;
             foreach (ActiveDirectoryGroup group in this.groupsCollection)
             {
                 foreach (ActiveDirectoryGroupMember member in group)
@@ -254,6 +239,7 @@ namespace Escc.ActiveDirectory
             }
             return null;
         }
+
         /// <summary>
         /// Finds groups based on ambiguous name resolution
         /// </summary>
@@ -275,29 +261,20 @@ namespace Escc.ActiveDirectory
             }
             try
             {
-                SearchResultCollection src = ds.FindAll();
+                SearchResultCollection results = ds.FindAll();
 
-                if (src.Count > 0)
+                if (results.Count > 0)
                 {
-                    //CreateGroupColl(src);
-                    CreateGroupCollection(src);
+                    CreateGroupCollection(results);
                 }
-                if (src.Count > 1)
+                if (results.Count > 1)
                 {
                     OnGroupsFound();
                 }
-                if (src.Count == 1)
+                if (results.Count == 1)
                 {
                     OnGroupFound();
                 }
-                if (src == null || src.Count == 0)
-                {
-
-                }
-            }
-            catch
-            {
-                throw;
             }
             finally
             {
@@ -369,12 +346,12 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Helper method populates a collection of groups.
         /// </summary>
-        /// <param name="Results">System.DirectoryServices.SearchResultCollection</param>
-        private void CreateGroupCollection(SearchResultCollection Results)
+        /// <param name="results">System.DirectoryServices.SearchResultCollection</param>
+        private void CreateGroupCollection(SearchResultCollection results)
         {
             string groupName = null;
             string samAccountName = null;
-            foreach (SearchResult groupObject in Results)
+            foreach (SearchResult groupObject in results)
             {
                 ActiveDirectoryGroup group = new ActiveDirectoryGroup();
                 PropertyCollection propcoll = groupObject.GetDirectoryEntry().Properties;
@@ -414,53 +391,64 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Helper method populates collection with ActiveDirectoryUser objects.
         /// </summary>
-        /// <param name="Results">System.DirectoryServices.SearchResultCollection</param>
-        private void CreateUserCollection(SearchResultCollection Results)
+        /// <param name="results">System.DirectoryServices.SearchResultCollection</param>
+        /// <param name="propertyNames">The property names to load.</param>
+        private void CreateUserCollection(SearchResultCollection results, string[] propertyNames)
         {
-            string[] propertyNames = null;
-            if (this.PropertiesToLoad.Count > 0)
+            if (propertyNames != null && propertyNames.Length > 0)
             {
-                propertyNames = new string[this.PropertiesToLoad.Count];
-                this.PropertiesToLoad.CopyTo(propertyNames, 0);
-            }
+                foreach (SearchResult r in results)
+                {
+                    PropertyCollection propcoll = r.GetDirectoryEntry().Properties;
+                    ActiveDirectoryUser user = new ActiveDirectoryUser();
 
-            foreach (SearchResult r in Results)
+                    string[] propertyNamesForResult = propertyNames;
+                    if (propertyNamesForResult == null || propertyNamesForResult.Length == 0)
+                    {
+                        propertyNamesForResult = new string[propcoll.Count];
+                        propcoll.PropertyNames.CopyTo(propertyNamesForResult, 0);
+                    }
+
+                    //loop through all of the properties for this record
+                    foreach (string key in propertyNamesForResult)
+                    {
+                        // Faster code to read property values. This could replace the old code in CreateUserCollectionAllProperties
+                        // if (1) every property always has a PropertyValueCollection (2) the lowercase AD property names
+                        // can be made to relate to the mixed case object property names. Not all scenarios tested so old
+                        // still available.
+                        PropertyValueCollection propertyValues = propcoll[key];
+                        if (propertyValues != null && propertyValues.Count > 0)
+                        {
+                            // AD potentially holds multiple values for a property, but the ActiveDirectoryUser object only 
+                            // supports one for each, so just use the first value. CreateUserCollectionAllProperties just used
+                            // the last value because it overwrites any previous one found.
+                            PropertyInfo userProperty = user.GetType().GetProperty(key);
+                            if (userProperty != null) userProperty.SetValue(user, ParseString(propertyValues[0]), null);
+                        }
+                    }
+                    userCollection.Add(user);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method populates collection with ActiveDirectoryUser objects.
+        /// </summary>
+        /// <param name="results">System.DirectoryServices.SearchResultCollection</param>
+        private void CreateUserCollectionAllProperties(SearchResultCollection results)
+        {
+            foreach (SearchResult r in results)
             {
                 PropertyCollection propcoll = r.GetDirectoryEntry().Properties;
                 ActiveDirectoryUser user = new ActiveDirectoryUser();
 
-                if (this.PropertiesToLoad.Count == 0)
-                {
-                    propertyNames = new string[propcoll.Count];
-                    propcoll.PropertyNames.CopyTo(propertyNames, 0);
-                }
+                var propertyNamesForResult = new string[propcoll.Count];
+                propcoll.PropertyNames.CopyTo(propertyNamesForResult, 0);
 
                 //loop through all of the properties for this record
-                foreach (string key in propertyNames)
+                foreach (string key in propertyNamesForResult)
                 {
-                    // New faster bit of code to read property values. This could potentially replace the old code below
-                    // if (1) every property always has a PropertyValueCollection (2) the lowercase AD property names
-                    // can be made to relate to the mixed case object property names. Not all scenarios tested so old
-                    // code left as default behaviour, and this code kicks in instead for new/updated apps that specify 
-                    // the PropertiesToLoad.
-                    if (this.PropertiesToLoad.Count > 0)
-                    {
-                        PropertyValueCollection propertyValues = propcoll[key] as PropertyValueCollection;
-                        if (propertyValues != null && propertyValues.Count > 0)
-                        {
-                            // AD potentially holds multiple values for a property, but the ActiveDirectoryUser object only 
-                            // supports one for each, so just use the first value. The old code below just used
-                            // the last value because it overwrites any previous one found.
-                            PropertyInfo userProperty = user.GetType().GetProperty(key) as PropertyInfo;
-                            if (userProperty != null) userProperty.SetValue(user, ParseString(propertyValues[0]), null);
-                        }
-
-                        // Skip back to the start of the loop - don't run the old code.
-                        continue;
-                    }
-
-
-                    // Old approach still used for generic queries that don't specify PropertiesToLoad (effectively SELECT * queries). 
+                    // Slow approach used for generic queries that don't specify properties to load (effectively SELECT * queries). 
                     // Loop through all the values associated with our key, testing every possible key they might match.
                     foreach (object values in propcoll[key])
                     {
@@ -596,7 +584,6 @@ namespace Escc.ActiveDirectory
                         }
                     }
                 }
-
                 userCollection.Add(user);
             }
         }

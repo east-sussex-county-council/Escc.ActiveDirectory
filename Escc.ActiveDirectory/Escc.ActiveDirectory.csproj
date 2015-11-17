@@ -116,10 +116,14 @@
     <Compile Include="ActiveDirectoryUser.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="GroupFoundEventArgs.cs" />
+    <Compile Include="GroupsFoundEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DoubleHop.cs" />
+    <Compile Include="UserFoundEventArgs.cs" />
+    <Compile Include="UsersFoundEventArgs.cs" />
     <Compile Include="WebUserPermissions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

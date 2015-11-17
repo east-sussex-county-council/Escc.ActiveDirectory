@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -54,7 +53,12 @@ namespace Escc.ActiveDirectory
         /// </summary>
         private CultureInfo culture = CultureInfo.CurrentCulture;
 
+        /// <summary>
+        /// Gets or sets the maximum number of results to return (to speed up large queries)
+        /// </summary>
+        public int MaximumResults { get; set; }
         #endregion
+
         #region constructors, destructors and initialisers
 
         /// <summary>
@@ -67,11 +71,6 @@ namespace Escc.ActiveDirectory
             LDAPPath = ConfigurationManager.AppSettings["LDAPPath"];
         }
         #endregion
-
-        /// <summary>
-        /// Gets or sets the maximum number of results to return (to speed up large queries)
-        /// </summary>
-        public int MaximumResults { get; set; }
 
         #region public methods
         /// <summary>
@@ -342,6 +341,7 @@ namespace Escc.ActiveDirectory
             return this.groupNames;
         }
         #endregion
+        
         #region private methods
         /// <summary>
         /// Helper method populates a collection of groups.
@@ -606,6 +606,7 @@ namespace Escc.ActiveDirectory
             return tmp;
         }
         #endregion
+        
         #region events and delegates
         /// <summary>
         /// Event indicating that a group has been found by groupname
@@ -689,143 +690,5 @@ namespace Escc.ActiveDirectory
         }
         #endregion
     }
-    #region custom eventargs classes
-    /// <summary>
-    /// Custom Event argument for UserFound event holding an ADUserCollection
-    /// </summary>
-    public class UserFoundEventArgs : EventArgs
-    {
-        #region Fields
-        /// <summary>
-        /// Store ADUserCollection
-        /// </summary>
-        private Collection<ActiveDirectoryUser> userCollection;
-        #endregion
-        #region properties
-        /// <summary>
-        /// public read only property holding  an ActiveDirectoryUser collection
-        /// </summary>
-        public Collection<ActiveDirectoryUser> UserCollection
-        {
-            get
-            {
-                return userCollection;
-            }
-        }
-        #endregion
-        #region Constructors
-        /// <summary>
-        /// Event arguments for <c>UserFound</c> event
-        /// </summary>
-        /// <param name="userCollection">The collection containing one user object representing the AD user by principal name (logon name)</param>
-        public UserFoundEventArgs(Collection<ActiveDirectoryUser> userCollection)
-        {
-            this.userCollection = userCollection;
-        }
-        #endregion
-    }
-    /// <summary>
-    /// Custom Event argument for UsersFound event holding an ADUserCollection
-    /// </summary>
-    public class UsersFoundEventArgs : EventArgs
-    {
-        #region Fields
-        /// <summary>
-        /// Store ADUserCollection
-        /// </summary>
-        private Collection<ActiveDirectoryUser> userCollection;
-        #endregion
-        #region properties
-        /// <summary>
-        /// public read only property holding  an ActiveDirectoryUser collection
-        /// </summary>
-        public Collection<ActiveDirectoryUser> UserCollection
-        {
-            get
-            {
-                return userCollection;
-            }
-        }
-        #endregion
-        #region Constructors
-        /// <summary>
-        /// Event arguments for <c>UsersFound</c> event
-        /// </summary>
-        /// <param name="userCollection">The collection containing one or more user objects representing the AD users found by search term</param>
-        public UsersFoundEventArgs(Collection<ActiveDirectoryUser> userCollection)
-        {
-            this.userCollection = userCollection;
-        }
-        #endregion
-    }
-    /// <summary>
-    /// Custom Event argument for GroupFound event holding an ADGroupsCollection
-    /// </summary>
-    public class GroupFoundEventArgs : EventArgs
-    {
-        #region Fields
-        /// <summary>
-        /// Store ActiveDirectoryGroup
-        /// </summary>
-        private Collection<ActiveDirectoryGroup> groupsCollection;
-        #endregion
-        #region properties
-        /// <summary>
-        /// public read only property holding  an collection of groups
-        /// </summary>
-        public Collection<ActiveDirectoryGroup> GroupsCollection
-        {
-            get
-            {
-                return groupsCollection;
-            }
-        }
-        #endregion
-        #region Constructors
-        /// <summary>
-        /// Event arguments for <c>GroupsFound</c> event
-        /// </summary>
-        /// <param name="groupsCollection">The collection containing one or more AD groups found by search term</param>
-        public GroupFoundEventArgs(Collection<ActiveDirectoryGroup> groupsCollection)
-        {
-            this.groupsCollection = groupsCollection;
-        }
-        #endregion
-    }
-    /// <summary>
-    /// Custom Event argument for GroupsFound event holding an ADGroupsCollection
-    /// </summary>
-    public class GroupsFoundEventArgs : EventArgs
-    {
-        #region Fields
-        /// <summary>
-        /// Store ADGroupsCollection
-        /// </summary>
-        private Collection<ActiveDirectoryGroup> groupsCollection;
-        #endregion
-        #region properties
-        /// <summary>
-        /// public read only property holding  an collection of groups
-        /// </summary>
-        public Collection<ActiveDirectoryGroup> GroupsCollection
-        {
-            get
-            {
-                return groupsCollection;
-            }
-        }
-        #endregion
-        #region Constructors
-        /// <summary>
-        /// Event arguments for <c>GroupsFound</c> event
-        /// </summary>
-        /// <param name="groupsCollection">The collection containing one or more user objects representing the AD groups found by search term</param>
-        public GroupsFoundEventArgs(Collection<ActiveDirectoryGroup> groupsCollection)
-        {
-            this.groupsCollection = groupsCollection;
-        }
-        #endregion
-    }
-    #endregion
 }
 

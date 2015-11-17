@@ -1,3 +1,4 @@
+using System.Resources;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -8,11 +9,11 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly: AssemblyTitle("EsccWebTeam.Data.ActiveDirectory")]
-[assembly: AssemblyDescription("Helper library for working with an Active Directory data store")]
+[assembly: AssemblyTitle("Escc.ActiveDirectory")]
+[assembly: AssemblyDescription("A library for working with an Active Directory data store")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("East Sussex County Council")]
-[assembly: AssemblyProduct("EsccWebTeam.Data.ActiveDirectory")]
+[assembly: AssemblyProduct("Escc.ActiveDirectory")]
 [assembly: AssemblyCopyright("East Sussex County Council")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]		
@@ -58,3 +59,5 @@ using System.Security;
 [assembly: AssemblyDelaySign(false)]
 [assembly: ComVisibleAttribute(false)]
 [assembly: AllowPartiallyTrustedCallersAttribute]
+[assembly: NeutralResourcesLanguage("en-GB")]
+

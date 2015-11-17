@@ -4,7 +4,7 @@ using System.Text;
 using System.Security.Principal;
 using System.Runtime.InteropServices;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
     /// <summary>
     /// This class allows the user to impersonate a domain account to get round the double hop problem.

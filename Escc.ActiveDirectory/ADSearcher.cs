@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Reflection;
 using System.Security.Principal;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
     /// <summary>
     /// Summary description for ADSearcher.

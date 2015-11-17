@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Collections;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
 	/// <summary>
 	/// Class corresponding to an Active Direstory User object or subset of the user object properties

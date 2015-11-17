@@ -1,28 +1,28 @@
 using System;
 using System.Collections;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
 	/// <summary>
-	/// Summary description for ADGroup.
+	/// Summary description for ADUserCollection.
 	/// </summary>
-	public class ADGroupCollection: CollectionBase
+	public class ADUserCollection: CollectionBase
 	{
 		#region constructor
 		/// <summary>
 		/// Class constructor
 		/// </summary>
-		public ADGroupCollection()
+		public ADUserCollection()
 		{
 		}
 		#endregion
 		#region Interface implementations
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
 		/// <param name="item"></param>
-		/// <returns>The position into which the new element was inserted.</returns>
-		public int Add(ADGroupMember item)
+		/// <returns></returns>
+		public int Add(ADUser item)
 		{
 			return List.Add(item);
 		}
@@ -31,53 +31,53 @@ namespace EsccWebTeam.Data.ActiveDirectory
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="item"></param>
-		public void Insert(int index, ADGroupMember item)
+		public void Insert(int index, ADUser item)
 		{
 			List.Insert(index, item);
 		}
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
 		/// <param name="item"></param>
-		public void Remove(ADGroupMember item)
+		public void Remove(ADUser item)
 		{
 			List.Remove(item);
 		} 
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
 		/// <param name="item"></param>
-		/// <returns>The position into which the new element was inserted.</returns>
-		public bool Contains(ADGroupMember item)
+		/// <returns></returns>
+		public bool Contains(ADUser item)
 		{
 			return List.Contains(item);
 		}
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
 		/// <param name="item"></param>
-		/// <returns>The position into which the new element was inserted.</returns>
-		public int IndexOf(ADGroupMember item)
+		/// <returns></returns>
+		public int IndexOf(ADUser item)
 		{
 			return List.IndexOf(item);
 		}
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
 		/// <param name="array"></param>
 		/// <param name="index"></param>
-		public void CopyTo(ADGroupMember[] array, int index)
+		public void CopyTo(ADUser[] array, int index)
 		{
 			List.CopyTo(array, index);
 		}
 		#endregion
 		#region public properties
 		/// <summary>
-		/// Interface implementation
+		/// Interface imoplementation
 		/// </summary>
-		public ADGroupMember this[int index]
+		public ADUser this[int index]
 		{
-			get { return (ADGroupMember)List[index]; }
+			get { return (ADUser)List[index]; }
 			set { List[index] = value; }
 		}
 		#endregion

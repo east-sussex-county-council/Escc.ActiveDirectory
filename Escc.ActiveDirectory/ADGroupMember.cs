@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
 	/// <summary>
 	/// Class corresponding to a subset of the AD user object properties.

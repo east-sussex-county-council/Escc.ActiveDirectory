@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Security.Principal;
 using System.Web;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
     /// <summary>
     /// Checks the permissions of the current user of a web application

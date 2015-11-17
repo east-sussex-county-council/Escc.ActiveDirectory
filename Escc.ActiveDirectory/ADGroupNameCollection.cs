@@ -1,28 +1,28 @@
 using System;
 using System.Collections;
 
-namespace EsccWebTeam.Data.ActiveDirectory
+namespace Escc.ActiveDirectory
 {
 	/// <summary>
-	/// Summary description for ADUserCollection.
+	/// Summary description for ADGroup.
 	/// </summary>
-	public class ADUserCollection: CollectionBase
+	public class ADGroupNameCollection: CollectionBase
 	{
 		#region constructor
 		/// <summary>
 		/// Class constructor
 		/// </summary>
-		public ADUserCollection()
+		public ADGroupNameCollection()
 		{
 		}
 		#endregion
 		#region Interface implementations
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public int Add(ADUser item)
+		public int Add(string item)
 		{
 			return List.Add(item);
 		}
@@ -31,53 +31,54 @@ namespace EsccWebTeam.Data.ActiveDirectory
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="item"></param>
-		public void Insert(int index, ADUser item)
+		public void Insert(int index, string item)
 		{
 			List.Insert(index, item);
 		}
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
 		/// <param name="item"></param>
-		public void Remove(ADUser item)
+		/// <returns></returns>
+		public void Remove(string item)
 		{
 			List.Remove(item);
 		} 
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public bool Contains(ADUser item)
+		public bool Contains(string item)
 		{
 			return List.Contains(item);
 		}
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
 		/// <param name="item"></param>
 		/// <returns></returns>
-		public int IndexOf(ADUser item)
+		public int IndexOf(string item)
 		{
 			return List.IndexOf(item);
 		}
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
 		/// <param name="array"></param>
 		/// <param name="index"></param>
-		public void CopyTo(ADUser[] array, int index)
+		public void CopyTo(string[] array, int index)
 		{
 			List.CopyTo(array, index);
 		}
 		#endregion
 		#region public properties
 		/// <summary>
-		/// Interface imoplementation
+		/// Interface implementation
 		/// </summary>
-		public ADUser this[int index]
+		public string this[int index]
 		{
-			get { return (ADUser)List[index]; }
+			get { return (string)List[index]; }
 			set { List[index] = value; }
 		}
 		#endregion

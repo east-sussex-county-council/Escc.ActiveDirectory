@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Configuration;
@@ -31,15 +32,15 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// private field to store user details
         /// </summary>
-        private ADUserCollection userCollection;
+        private Collection<ActiveDirectoryUser> userCollection;
         /// <summary>
         /// private field to store group details
         /// </summary>
-        private ADGroupsCollection groupsCollection;
+        private Collection<ActiveDirectoryGroup> groupsCollection;
         /// <summary>
         /// private field to store group names only
         /// </summary>
-        private ADGroupNameCollection groupNames;
+        private Collection<string> groupNames;
         /// <summary>
         /// flag used to influence search filter choice
         /// </summary>
@@ -62,7 +63,7 @@ namespace Escc.ActiveDirectory
         /// </summary>
         public ADSearcher()
         {
-            ADUser = ConfigurationManager.AppSettings["ADUser"];
+            ADUser = ConfigurationManager.AppSettings["ActiveDirectoryUser"];
             ADPassword = ConfigurationManager.AppSettings["ADPassword"];
             LDAPPath = ConfigurationManager.AppSettings["LDAPPath"];
             culture = CultureInfo.CurrentCulture;
@@ -94,63 +95,28 @@ namespace Escc.ActiveDirectory
 
         #region public methods
         /// <summary>
-        /// Checks to see if a user belongs to a domain group. Requires a list of groups either as an arraylist or an ADGroupNameCollection.
+        /// Checks to see if a user belongs to a domain group. Requires a list of group names.
         /// </summary>
         /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="groups">System.Text.ArrayList</param>
-        /// <param name="groupNameCollection">ADUtilities.ADGroupNameCollection</param>
+        /// <param name="groupNameCollection"></param>
         /// <returns>Returns a System.Collections.Specialized.NameValueCollection containing group names and a true/false string indicating membership.</returns>
-        public static NameValueCollection GetGroupMembership(WindowsIdentity wi, ArrayList groups, ADGroupNameCollection groupNameCollection)
+        public static Dictionary<string,bool> GetGroupMembership(WindowsIdentity wi, IEnumerable<string> groupNameCollection)
         {
-            NameValueCollection GroupMembershipCollection = new NameValueCollection();
+            var groupMembershipCollection = new Dictionary<string, bool>();
             bool isInRole;
             WindowsPrincipal wp = new WindowsPrincipal(wi);
-            if (groups != null & groupNameCollection == null)
-            {
-                foreach (string group in groups)
-                {
-                    isInRole = wp.IsInRole(group);
-                    GroupMembershipCollection.Add(group, isInRole.ToString());
-                }
-            }
-            if (groups == null & groupNameCollection != null)
+            if (groupNameCollection != null)
             {
                 foreach (string group in groupNameCollection)
                 {
                     isInRole = wp.IsInRole(group);
-                    GroupMembershipCollection.Add(group, isInRole.ToString());
+                    groupMembershipCollection.Add(group, isInRole);
                 }
             }
-            if (groups != null & groupNameCollection != null)
-            {
-                foreach (string group in groupNameCollection)
-                {
-                    isInRole = wp.IsInRole(group);
-                    GroupMembershipCollection.Add(group, isInRole.ToString());
-                }
-            }
-            return GroupMembershipCollection;
+
+            return groupMembershipCollection;
         }
-        /// <summary>
-        /// Overload of GetGroupMembership
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="groups">System.Text.ArrayList</param>
-        /// <returns>A NameValueCollection containing the group name and a true/false string to indicate membership.</returns>
-        public static NameValueCollection GetGroupMembership(WindowsIdentity wi, ArrayList groups)
-        {
-            return GetGroupMembership(wi, groups, null);
-        }
-        /// <summary>
-        /// Overload of GetGroupMembership
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="groupNameCollection">ADUtilities.ADGroupNameCollection</param>
-        /// <returns>A NameValueCollection containing the group name and a true/false string to indicate membership.</returns>
-        public static NameValueCollection GetGroupMembership(WindowsIdentity wi, ADGroupNameCollection groupNameCollection)
-        {
-            return GetGroupMembership(wi, null, groupNameCollection);
-        }
+        
         /// <summary>
         /// Checks to see if a user belongs to a given NT group.
         /// </summary>
@@ -166,14 +132,14 @@ namespace Escc.ActiveDirectory
         /// Gets an AD user object based on logon name.
         /// </summary>
         /// <param name="acctName">user logon name</param>
-        /// <returns>An ADUtilities.ADUserCollection containing a single ADUtilities.ADUser object containing most properties associated with an AD user object.</returns>
-        public ADUserCollection GetUserBySamAccountName(string acctName)
+        /// <returns>An collection containing a single ActiveDirectoryUser object containing most properties associated with an AD user object.</returns>
+        public Collection<ActiveDirectoryUser> GetUserBySamAccountName(string acctName)
         {
             searchBylogonFlag = true;
             SearchForUsers(acctName);
             searchBylogonFlag = false;
 
-            foreach (ADUser user in this.userCollection)
+            foreach (ActiveDirectoryUser user in this.userCollection)
             {
                 if (user.SamAccountName != null)
                 {
@@ -193,10 +159,10 @@ namespace Escc.ActiveDirectory
         /// </summary>
         /// <param name="searchText">Part of an AD username</param>
         /// <returns>A collection of users with matching account names</returns>
-        public ADUserCollection SearchForUsersBySamAccountName(string searchText)
+        public Collection<ActiveDirectoryUser> SearchForUsersBySamAccountName(string searchText)
         {
             this.searchBylogonFlag = true;
-            ADUserCollection users = this.SearchForUsers(searchText);
+            var users = this.SearchForUsers(searchText);
             this.searchBylogonFlag = false;
             return users;
         }
@@ -204,10 +170,10 @@ namespace Escc.ActiveDirectory
         /// Performs a search for AD users using ambiguous name resolution (i.e. searches can be done using partial names).
         /// </summary>
         /// <param name="searchText"></param>
-        /// <returns>An ADUtilities.ADUserCollection containing multiple ADUtilities.ADUser objects.</returns>
-        public ADUserCollection SearchForUsers(string searchText)
+        /// <returns>An collection containing multiple ActiveDirectoryUser objects.</returns>
+        public Collection<ActiveDirectoryUser> SearchForUsers(string searchText)
         {
-            this.userCollection = new ADUserCollection();
+            this.userCollection = new Collection<ActiveDirectoryUser>();
             DirectoryEntry ent = new DirectoryEntry(LDAPPath);
             ent.Username = this.ADUser;
             ent.Password = this.ADPassword;
@@ -270,14 +236,14 @@ namespace Escc.ActiveDirectory
         /// Gets an AD group object.
         /// </summary>
         /// <param name="groupName">string. The name of the group to retrieve</param>
-        /// <returns>An ADUtilities.ADGroupsCollection containing a single ADUtilities.ADGroupCollection containing ADUtilities.ADGroupMember objects. </returns>
-        public ADGroupsCollection GetGroupByGroupName(string groupName)
+        /// <returns>An collection containing a single ActiveDirectoryGroup containing ActiveDirectoryGroupMember objects. </returns>
+        public Collection<ActiveDirectoryGroup> GetGroupByGroupName(string groupName)
         {
             searchByGroupNameFlag = true;
             SearchForGroups(groupName);
-            foreach (ADGroupCollection group in this.groupsCollection)
+            foreach (ActiveDirectoryGroup group in this.groupsCollection)
             {
-                foreach (ADGroupMember member in group)
+                foreach (ActiveDirectoryGroupMember member in group)
                 {
                     if (member.GroupName == groupName)
                     {
@@ -292,10 +258,10 @@ namespace Escc.ActiveDirectory
         /// Finds groups based on ambiguous name resolution
         /// </summary>
         /// <param name="searchText">string</param>
-        /// <returns>An ADUtilities.ADGroupsCollection containing ADGroupCollection objects</returns>
-        public ADGroupsCollection SearchForGroups(string searchText)
+        /// <returns>An collection containing ActiveDirectoryGroup objects</returns>
+        public Collection<ActiveDirectoryGroup> SearchForGroups(string searchText)
         {
-            this.groupsCollection = new ADGroupsCollection();
+            this.groupsCollection = new Collection<ActiveDirectoryGroup>();
             DirectoryEntry ent = new DirectoryEntry(LDAPPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
@@ -360,10 +326,10 @@ namespace Escc.ActiveDirectory
         /// Finds group names based on ambiguous name resolution
         /// </summary>
         /// <param name="searchText">Group name with or without wildcard (e.g. "SOMEGROUP_*")</param>
-        /// <returns>ADUtilities.ADGroupNameCollection containing group names as strings</returns>
-        public ADGroupNameCollection GetGroupNames(string searchText)
+        /// <returns>Group names as strings</returns>
+        public Collection<string> GetGroupNames(string searchText)
         {
-            groupNames = new ADGroupNameCollection();
+            groupNames = new Collection<string>();
             DirectoryEntry ent = new DirectoryEntry(LDAPPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
@@ -383,10 +349,10 @@ namespace Escc.ActiveDirectory
         /// Finds group paths based on ambiguous name resolution
         /// </summary>
         /// <param name="searchText">Group name with or without wildcard (e.g. "SOMEGROUP_*")</param>
-        /// <returns>ADUtilities.ADGroupNameCollection containing group paths as strings</returns>
-        public ADGroupNameCollection GetGroupPaths(string searchText)
+        /// <returns>Group paths as strings</returns>
+        public Collection<string> GetGroupPaths(string searchText)
         {
-            groupNames = new ADGroupNameCollection();
+            groupNames = new Collection<string>();
             DirectoryEntry ent = new DirectoryEntry(LDAPPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
@@ -401,7 +367,7 @@ namespace Escc.ActiveDirectory
         #endregion
         #region private methods
         /// <summary>
-        /// Helper method populates an ADUtilities.ADGroupsCollection.
+        /// Helper method populates a collection of groups.
         /// </summary>
         /// <param name="Results">System.DirectoryServices.SearchResultCollection</param>
         private void CreateGroupCollection(SearchResultCollection Results)
@@ -410,7 +376,7 @@ namespace Escc.ActiveDirectory
             string samAccountName = null;
             foreach (SearchResult groupObject in Results)
             {
-                ADGroupCollection group = new ADGroupCollection();
+                ActiveDirectoryGroup group = new ActiveDirectoryGroup();
                 PropertyCollection propcoll = groupObject.GetDirectoryEntry().Properties;
                 foreach (string key in groupObject.GetDirectoryEntry().Properties.PropertyNames)
                 {
@@ -430,7 +396,7 @@ namespace Escc.ActiveDirectory
                         // get the member name of this entry
                         if (string.Compare(key, "member", true, culture) == 0)
                         {
-                            ADGroupMember member = new ADGroupMember();
+                            ActiveDirectoryGroupMember member = new ActiveDirectoryGroupMember();
                             member.GroupName = groupName;
                             member.GroupMember = ParseString(values);
                             member.MemberString = values.ToString();
@@ -446,49 +412,7 @@ namespace Escc.ActiveDirectory
         }
 
         /// <summary>
-        /// Helper method populates an ADUtilities.ADGroupsCollection.
-        /// </summary>
-        /// <param name="Results">System.DirectoryServices.SearchResultCollection</param>
-        private void CreateGroupColl(SearchResultCollection Results)
-        {
-            //string groupName = null;		
-            foreach (SearchResult groupObject in Results)
-            {
-                ADGroupCollection group = new ADGroupCollection();
-                PropertyCollection propcoll = groupObject.GetDirectoryEntry().Properties;
-                //				foreach(string key in groupObject.GetDirectoryEntry().Properties.PropertyNames)
-                //				{
-                ADGroupMember member = new ADGroupMember();
-                member.GroupName = propcoll["cn"].Value.ToString();
-                member.MemberString = propcoll["member"].Value.ToString();
-                //loop through all the values associated with our key
-                foreach (object values in propcoll["member"])
-                {
-                    // get the group name of this entry
-                    //						if(string.Compare(key,"cn", true, culture) == 0)
-                    //						{
-                    //							groupName = values.ToString();
-                    //						}
-                    // get the member name of this entry
-                    //						if(string.Compare(key,"member", true, culture) == 0)
-                    //						{	
-
-                    //member.GroupName = propcoll["cn"].Value.ToString();
-                    member.GroupMember = ParseString(values.ToString());
-                    //member.MemberString = propcoll["member"].Value.ToString();
-                    group.Add(member);
-                    //}	
-                }
-                //}
-                if (group != null)
-                {
-                    groupsCollection.Add(group);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Helper method populates ADUtilities.ADUserCollection with ADUser objects.
+        /// Helper method populates collection with ActiveDirectoryUser objects.
         /// </summary>
         /// <param name="Results">System.DirectoryServices.SearchResultCollection</param>
         private void CreateUserCollection(SearchResultCollection Results)
@@ -503,7 +427,7 @@ namespace Escc.ActiveDirectory
             foreach (SearchResult r in Results)
             {
                 PropertyCollection propcoll = r.GetDirectoryEntry().Properties;
-                ADUser user = new ADUser();
+                ActiveDirectoryUser user = new ActiveDirectoryUser();
 
                 if (this.PropertiesToLoad.Count == 0)
                 {
@@ -524,7 +448,7 @@ namespace Escc.ActiveDirectory
                         PropertyValueCollection propertyValues = propcoll[key] as PropertyValueCollection;
                         if (propertyValues != null && propertyValues.Count > 0)
                         {
-                            // AD potentially holds multiple values for a property, but the ADUser object only 
+                            // AD potentially holds multiple values for a property, but the ActiveDirectoryUser object only 
                             // supports one for each, so just use the first value. The old code below just used
                             // the last value because it overwrites any previous one found.
                             PropertyInfo userProperty = user.GetType().GetProperty(key) as PropertyInfo;
@@ -788,13 +712,13 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Store ADUserCollection
         /// </summary>
-        private ADUserCollection userCollection;
+        private Collection<ActiveDirectoryUser> userCollection;
         #endregion
         #region properties
         /// <summary>
-        /// public read only property holding  an ADUtilities.ADUserCollection
+        /// public read only property holding  an ActiveDirectoryUser collection
         /// </summary>
-        public ADUserCollection UserCollection
+        public Collection<ActiveDirectoryUser> UserCollection
         {
             get
             {
@@ -807,7 +731,7 @@ namespace Escc.ActiveDirectory
         /// Event arguments for <c>UserFound</c> event
         /// </summary>
         /// <param name="userCollection">The collection containing one user object representing the AD user by principal name (logon name)</param>
-        public UserFoundEventArgs(ADUserCollection userCollection)
+        public UserFoundEventArgs(Collection<ActiveDirectoryUser> userCollection)
         {
             this.userCollection = userCollection;
         }
@@ -822,13 +746,13 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Store ADUserCollection
         /// </summary>
-        private ADUserCollection userCollection;
+        private Collection<ActiveDirectoryUser> userCollection;
         #endregion
         #region properties
         /// <summary>
-        /// public read only property holding  an ADUtilities.ADUserCollection
+        /// public read only property holding  an ActiveDirectoryUser collection
         /// </summary>
-        public ADUserCollection UserCollection
+        public Collection<ActiveDirectoryUser> UserCollection
         {
             get
             {
@@ -841,7 +765,7 @@ namespace Escc.ActiveDirectory
         /// Event arguments for <c>UsersFound</c> event
         /// </summary>
         /// <param name="userCollection">The collection containing one or more user objects representing the AD users found by search term</param>
-        public UsersFoundEventArgs(ADUserCollection userCollection)
+        public UsersFoundEventArgs(Collection<ActiveDirectoryUser> userCollection)
         {
             this.userCollection = userCollection;
         }
@@ -854,15 +778,15 @@ namespace Escc.ActiveDirectory
     {
         #region Fields
         /// <summary>
-        /// Store ADGroupCollection
+        /// Store ActiveDirectoryGroup
         /// </summary>
-        private ADGroupsCollection groupsCollection;
+        private Collection<ActiveDirectoryGroup> groupsCollection;
         #endregion
         #region properties
         /// <summary>
-        /// public read only property holding  an ADUtilities.ADGroupsCollection
+        /// public read only property holding  an collection of groups
         /// </summary>
-        public ADGroupsCollection GroupsCollection
+        public Collection<ActiveDirectoryGroup> GroupsCollection
         {
             get
             {
@@ -875,7 +799,7 @@ namespace Escc.ActiveDirectory
         /// Event arguments for <c>GroupsFound</c> event
         /// </summary>
         /// <param name="groupsCollection">The collection containing one or more AD groups found by search term</param>
-        public GroupFoundEventArgs(ADGroupsCollection groupsCollection)
+        public GroupFoundEventArgs(Collection<ActiveDirectoryGroup> groupsCollection)
         {
             this.groupsCollection = groupsCollection;
         }
@@ -890,13 +814,13 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Store ADGroupsCollection
         /// </summary>
-        private ADGroupsCollection groupsCollection;
+        private Collection<ActiveDirectoryGroup> groupsCollection;
         #endregion
         #region properties
         /// <summary>
-        /// public read only property holding  an ADUtilities.ADGroupsCollection
+        /// public read only property holding  an collection of groups
         /// </summary>
-        public ADGroupsCollection GroupsCollection
+        public Collection<ActiveDirectoryGroup> GroupsCollection
         {
             get
             {
@@ -909,7 +833,7 @@ namespace Escc.ActiveDirectory
         /// Event arguments for <c>GroupsFound</c> event
         /// </summary>
         /// <param name="groupsCollection">The collection containing one or more user objects representing the AD groups found by search term</param>
-        public GroupsFoundEventArgs(ADGroupsCollection groupsCollection)
+        public GroupsFoundEventArgs(Collection<ActiveDirectoryGroup> groupsCollection)
         {
             this.groupsCollection = groupsCollection;
         }

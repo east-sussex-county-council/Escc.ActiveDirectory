@@ -4,9 +4,9 @@ using System.ComponentModel;
 namespace Escc.ActiveDirectory
 {
 	/// <summary>
-	/// Class corresponding to a subset of the AD user object properties.
+	/// A subset of the Active Directory user object properties.
 	/// </summary>
-	public class ADGroupMember
+	public class ActiveDirectoryGroupMember
 	{
 		#region private fields
 		/// <summary>
@@ -31,7 +31,7 @@ namespace Escc.ActiveDirectory
 		/// <summary>
 		/// Class constructor. 
 		/// </summary>
-		public ADGroupMember()
+		public ActiveDirectoryGroupMember()
 		{
 		}
 		#endregion

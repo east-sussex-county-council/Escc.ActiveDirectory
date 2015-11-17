@@ -104,25 +104,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ADGroupCollection.cs">
+    <Compile Include="ActiveDirectoryGroup.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ADGroupMember.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ADGroupNameCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ADGroupsCollection.cs">
+    <Compile Include="ActiveDirectoryGroupMember.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ADSearcher.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ADUser.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ADUserCollection.cs">
+    <Compile Include="ActiveDirectoryUser.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs">

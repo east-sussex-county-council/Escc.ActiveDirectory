@@ -2,13 +2,14 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Escc.ActiveDirectory
 {
 	/// <summary>
-	/// Class corresponding to an Active Direstory User object or subset of the user object properties
+	/// An Active Directory User object or subset of the user object properties
 	/// </summary>
-	public class ADUser
+	public class ActiveDirectoryUser
 	{
 		#region private fields
 		/// <summary>
@@ -116,32 +117,18 @@ namespace Escc.ActiveDirectory
 		/// </summary>
 		private string cn;
 
-        /* BROKEN
-          /// <summary>
-          /// private member field for the AD 'ObjectGuid' property value
-          /// </summary>
-          private string objectguid;
-
-          /// <summary>
-          /// private member field for the AD 'WhenChanged' property value
-          /// </summary>
-          private string whenchanged;
-
-      */
-
-
         /// <summary>
 		/// private memeber field to store memberof groups as a string array
 		/// </summary>
-		private ArrayList arrMemberGroups;
+		private List<string> arrMemberGroups;
 		#endregion
 		#region constructors, destructors and initialisers
 		/// <summary>
 		/// 
 		/// </summary>
-		public ADUser()
+		public ActiveDirectoryUser()
 		{
-			arrMemberGroups = new ArrayList();
+			arrMemberGroups = new List<string>();
 		}
 		#endregion
 		#region private methods
@@ -556,7 +543,7 @@ namespace Escc.ActiveDirectory
 		/// <summary>
 		/// 
 		/// </summary>
-		public ArrayList MemberGroups
+		public IList<string> MemberGroups
 		{
 			get
 			{

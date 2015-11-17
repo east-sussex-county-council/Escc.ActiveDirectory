@@ -129,14 +129,14 @@ namespace Escc.ActiveDirectory
             return wp.IsInRole(domainGroup);
         }
         /// <summary>
-        /// Gets an AD user object based on logon name.
+        /// Gets an Active Directory user based on logon name.
         /// </summary>
-        /// <param name="acctName">user logon name</param>
-        /// <returns>An collection containing a single ActiveDirectoryUser object containing most properties associated with an AD user object.</returns>
-        public Collection<ActiveDirectoryUser> GetUserBySamAccountName(string acctName)
+        /// <param name="accountName">user logon name</param>
+        /// <returns>A single ActiveDirectoryUser object containing most properties associated with an AD user object, or <c>null</c> if not found.</returns>
+        public ActiveDirectoryUser GetUserBySamAccountName(string accountName)
         {
             searchBylogonFlag = true;
-            SearchForUsers(acctName);
+            SearchForUsers(accountName);
             searchBylogonFlag = false;
 
             foreach (ActiveDirectoryUser user in this.userCollection)
@@ -144,14 +144,14 @@ namespace Escc.ActiveDirectory
                 if (user.SamAccountName != null)
                 {
                     string logonName = user.SamAccountName;
-                    if (string.Compare(acctName, logonName, true, culture) == 0)
+                    if (string.Compare(accountName, logonName, true, culture) == 0)
                     {
                         OnUserFound();
-                        return this.userCollection;
+                        return user;
                     }
                 }
             }
-            return this.userCollection;
+            return null;
         }
 
         /// <summary>
@@ -236,8 +236,8 @@ namespace Escc.ActiveDirectory
         /// Gets an AD group object.
         /// </summary>
         /// <param name="groupName">string. The name of the group to retrieve</param>
-        /// <returns>An collection containing a single ActiveDirectoryGroup containing ActiveDirectoryGroupMember objects. </returns>
-        public Collection<ActiveDirectoryGroup> GetGroupByGroupName(string groupName)
+        /// <returns>A single ActiveDirectoryGroup containing ActiveDirectoryGroupMember objects, or <c>null</c> if not found. </returns>
+        public ActiveDirectoryGroup GetGroupByGroupName(string groupName)
         {
             searchByGroupNameFlag = true;
             SearchForGroups(groupName);
@@ -248,11 +248,11 @@ namespace Escc.ActiveDirectory
                     if (member.GroupName == groupName)
                     {
                         OnGroupFound();
-                        return this.groupsCollection;
+                        return group;
                     }
                 }
             }
-            return this.groupsCollection;
+            return null;
         }
         /// <summary>
         /// Finds groups based on ambiguous name resolution

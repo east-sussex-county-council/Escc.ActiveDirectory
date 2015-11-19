@@ -119,14 +119,16 @@
     <Compile Include="GroupFoundEventHandler.cs" />
     <Compile Include="GroupsFoundEventArgs.cs" />
     <Compile Include="GroupsFoundEventHandler.cs" />
+    <Compile Include="IImpersonationWrapper.cs" />
     <Compile Include="IActiveDirectorySearcher.cs" />
+    <Compile Include="ImpersonatorWrapper.cs" />
     <Compile Include="IPermissionsResultCache.cs" />
     <Compile Include="IUserGroupsProvider.cs" />
     <Compile Include="LogonIdentityUserGroupsProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DoubleHop.cs" />
+    <Compile Include="Impersonator.cs" />
     <Compile Include="SessionPermissionsResultCache.cs" />
     <Compile Include="UserFoundEventArgs.cs" />
     <Compile Include="UserFoundEventHandler.cs" />

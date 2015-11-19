@@ -11,9 +11,8 @@ namespace Escc.ActiveDirectory
     /// The double-hop issue is when the ASPX page tries to use resources that are located on a server that is different from the IIS server
     /// that you are making the primary request to. Call the ImpersonateUser() method and pass in a set of credentials that have sufficent permissions on
     /// the file or folder you wish to access. After you have completed the operation call UndoUserImpersonation() method to return identity to original.
-    /// 
     /// </summary>
-    public class DoubleHop
+    public class Impersonator
     {
 
         private const int LOGON32_PROVIDER_DEFAULT = 0;
@@ -38,6 +37,13 @@ namespace Escc.ActiveDirectory
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true, ExactSpelling = true)]
         public static extern long CloseHandle(IntPtr handle);
 
+        /// <summary>
+        /// Impersonates an Active Directory account using the credentials given.
+        /// </summary>
+        /// <param name="usr">The username.</param>
+        /// <param name="domain">The domain.</param>
+        /// <param name="pwd">The password.</param>
+        /// <returns></returns>
         public static bool ImpersonateUser(string usr, string domain, string pwd)
         {
             bool retval = false;
@@ -71,6 +77,9 @@ namespace Escc.ActiveDirectory
             return retval;
         }
 
+        /// <summary>
+        /// Ends impersonation begun using <see cref="ImpersonateUser"/>.
+        /// </summary>
         public static void UndoUserImpersonation()
         {
             ImpersonationContext.Undo();

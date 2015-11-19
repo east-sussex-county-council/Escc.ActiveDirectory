@@ -104,27 +104,35 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActiveDirectorySettingsFromConfiguration.cs" />
     <Compile Include="ActiveDirectoryGroup.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ActiveDirectoryGroupMember.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ADSearcher.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="ActiveDirectorySearcher.cs" />
     <Compile Include="ActiveDirectoryUser.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="GroupFoundEventArgs.cs" />
+    <Compile Include="GroupFoundEventHandler.cs" />
     <Compile Include="GroupsFoundEventArgs.cs" />
+    <Compile Include="GroupsFoundEventHandler.cs" />
+    <Compile Include="IActiveDirectorySearcher.cs" />
+    <Compile Include="IPermissionsResultCache.cs" />
+    <Compile Include="IUserGroupsProvider.cs" />
+    <Compile Include="LogonIdentityUserGroupsProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DoubleHop.cs" />
+    <Compile Include="SessionPermissionsResultCache.cs" />
     <Compile Include="UserFoundEventArgs.cs" />
+    <Compile Include="UserFoundEventHandler.cs" />
     <Compile Include="UsersFoundEventArgs.cs" />
-    <Compile Include="WebUserPermissions.cs" />
+    <Compile Include="UsersFoundEventHandler.cs" />
+    <Compile Include="UserGroupMembership.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

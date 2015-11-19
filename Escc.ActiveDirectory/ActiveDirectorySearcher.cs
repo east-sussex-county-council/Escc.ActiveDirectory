@@ -11,9 +11,9 @@ using System.Security.Principal;
 namespace Escc.ActiveDirectory
 {
     /// <summary>
-    /// Summary description for ADSearcher.
+    /// Search Active Directory for user and role membership data
     /// </summary>
-    public class ADSearcher
+    public class ActiveDirectorySearcher : IActiveDirectorySearcher
     {
         #region private fields
         /// <summary>
@@ -62,9 +62,9 @@ namespace Escc.ActiveDirectory
         #region constructors, destructors and initialisers
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ADSearcher"/> class.
+        /// Initializes a new instance of the <see cref="ActiveDirectorySearcher"/> class.
         /// </summary>
-        public ADSearcher()
+        public ActiveDirectorySearcher()
         {
             ADUser = ConfigurationManager.AppSettings["ActiveDirectoryUser"];
             ADPassword = ConfigurationManager.AppSettings["ADPassword"];
@@ -74,12 +74,12 @@ namespace Escc.ActiveDirectory
 
         #region public methods
         /// <summary>
-        /// Checks to see if a user belongs to a domain group. Requires a list of group names.
+        /// Checks to see if a user belongs to a set of named domain groups
         /// </summary>
         /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
         /// <param name="groupNameCollection"></param>
-        /// <returns>Returns a System.Collections.Specialized.NameValueCollection containing group names and a true/false string indicating membership.</returns>
-        public static Dictionary<string,bool> GetGroupMembership(WindowsIdentity wi, IEnumerable<string> groupNameCollection)
+        /// <returns>Returns group names and a boolean indicating membership.</returns>
+        public Dictionary<string,bool> GetGroupMembership(WindowsIdentity wi, IEnumerable<string> groupNameCollection)
         {
             var groupMembershipCollection = new Dictionary<string, bool>();
             bool isInRole;
@@ -102,7 +102,7 @@ namespace Escc.ActiveDirectory
         /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
         /// <param name="domainGroup">string</param>
         /// <returns>a boolean</returns>
-        public static bool CheckGroupMembership(WindowsIdentity wi, string domainGroup)
+        public bool CheckGroupMembership(WindowsIdentity wi, string domainGroup)
         {
             WindowsPrincipal wp = new WindowsPrincipal(wi);
             return wp.IsInRole(domainGroup);
@@ -150,6 +150,7 @@ namespace Escc.ActiveDirectory
             this.searchBylogonFlag = false;
             return users;
         }
+
         /// <summary>
         /// Performs a search for AD users using ambiguous name resolution (i.e. searches can be done using partial names).
         /// </summary>
@@ -215,6 +216,7 @@ namespace Escc.ActiveDirectory
             }
             return this.userCollection;
         }
+
         /// <summary>
         /// Gets an AD group object.
         /// </summary>
@@ -282,22 +284,7 @@ namespace Escc.ActiveDirectory
             }
             return this.groupsCollection;
         }
-        /// <summary>
-        /// Gets a collection of ADS groups based on ambiguous name resolution
-        /// </summary>
-        /// <param name="searchText"></param>
-        /// <returns>A System.DirectoryServices.SearchResultCollection</returns>
-        public SearchResultCollection GetGroups(string searchText)
-        {
-            DirectoryEntry ent = new DirectoryEntry(LDAPPath);
-            DirectorySearcher ds = new DirectorySearcher();
-            ds.SearchRoot = ent;
-            ds.Filter = "(&(anr=" + searchText + ")(objectClass=group))";
-            SearchResultCollection src = ds.FindAll();
-            ds.Dispose();
-            ent.Close();
-            return src;
-        }
+        
         /// <summary>
         /// Finds group names based on ambiguous name resolution
         /// </summary>
@@ -612,10 +599,7 @@ namespace Escc.ActiveDirectory
         /// Event indicating that a group has been found by groupname
         /// </summary>
         public event GroupFoundEventHandler GroupFound;
-        /// <summary>
-        /// Delegate for the GroupFound event
-        /// </summary>
-        public delegate void GroupFoundEventHandler(object sender, GroupFoundEventArgs e);
+
         /// <summary>
         /// 
         /// </summary>
@@ -632,13 +616,7 @@ namespace Escc.ActiveDirectory
         /// Event indicating that multiple groups have been found by search term
         /// </summary>
         public event GroupsFoundEventHandler GroupsFound;
-        /// <summary>
-        /// Delegate for the GroupsFound event
-        /// </summary>
-        public delegate void GroupsFoundEventHandler(object sender, GroupsFoundEventArgs e);
-        /// <summary>
-        /// 
-        /// </summary>
+
         protected void OnGroupsFound()
         {
             // check there are handlers for the event before raising
@@ -652,13 +630,6 @@ namespace Escc.ActiveDirectory
         /// Event indicating that a user has been found by user principal name
         /// </summary>
         public event UserFoundEventHandler UserFound;
-        /// <summary>
-        /// Delegate for the UserFound event
-        /// </summary>
-        public delegate void UserFoundEventHandler(object sender, UserFoundEventArgs e);
-        /// <summary>
-        /// 
-        /// </summary>
         protected void OnUserFound()
         {
             // check there are handlers for the event before raising
@@ -672,13 +643,6 @@ namespace Escc.ActiveDirectory
         /// Event indicating that a user or users have has been found by search term
         /// </summary>
         public event UsersFoundEventHandler UsersFound;
-        /// <summary>
-        /// Delegate for the UsersFound event
-        /// </summary>
-        public delegate void UsersFoundEventHandler(object sender, UsersFoundEventArgs e);
-        /// <summary>
-        /// 
-        /// </summary>
         protected void OnUsersFound()
         {
             // check there are handlers for the event before raising

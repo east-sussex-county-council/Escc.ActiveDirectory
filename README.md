@@ -20,7 +20,7 @@ When an ASPX page tries to use protected resources (such as files or folders) on
 	var domain = "example";
 	var password = "example";
 
-	var impersonator = new ImpersonationWrapper();
+	var impersonator = new ImpersonatorWrapper();
 	impersonator.ImpersonateUser(username, domain, password);
 
 	// Access the protected resource
@@ -29,7 +29,7 @@ When an ASPX page tries to use protected resources (such as files or folders) on
 	// End the impersonation, returning the identity to its original value
 	impersonator.UndoUserImpersonation();
 
-The interface `IImpersonationWrapper` lets you specify your own implementations of `ImpersonationWrapper`; 
+The interface `IImpersonationWrapper` lets you specify your own implementations of `ImpersonatorWrapper`; 
 
 ## Configuration settings
 
@@ -43,7 +43,15 @@ Some settings can be saved in `web.config` or `app.config`.
 	  </configSections>
 	  <Escc.ActiveDirectory>
 	    <GeneralSettings>
+
+		  <!-- The default domain to assume when dealing with users on a single domain -->
 	      <add key="DefaultDomain" value="example" />
+
+		  <!-- Connection details used when querying using LDAP -->
+		  <add key="LdapPath" value="example" />
+	      <add key="LdapUser" value="example" />
+		  <add key="LdapPassword" value="example" />
+
 	    </GeneralSettings>
 	  </Escc.ActiveDirectory>
 	</configuration>

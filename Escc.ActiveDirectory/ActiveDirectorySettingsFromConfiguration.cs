@@ -10,7 +10,7 @@ namespace Escc.ActiveDirectory
     /// <summary>
     /// Gets configuration settings from web.config or app.config
     /// </summary>
-    public class ActiveDirectorySettingsFromConfiguration
+    public class ActiveDirectorySettingsFromConfiguration : IActiveDirectorySettings
     {
         private NameValueCollection _generalSettings;
 
@@ -35,6 +35,61 @@ namespace Escc.ActiveDirectory
                 if (_generalSettings != null)
                 {
                     return _generalSettings["DefaultDomain"];
+                }
+                return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Gets the LDAP path to be used when querying.
+        /// </summary>
+        /// <value>
+        /// The LDAP path, eg LDAP://hostname.
+        /// </value>
+        public string LdapPath
+        {
+            get
+            {
+                if (_generalSettings != null)
+                {
+                    return _generalSettings["LdapPath"];
+                }
+                return String.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Gets the username of the account to be used when using LDAP queries.
+        /// </summary>
+        /// <value>
+        /// The username.
+        /// </value>
+        public string LdapUsername
+        {
+            get
+            {
+                if (_generalSettings != null)
+                {
+                    return _generalSettings["LdapUser"];
+                }
+                return String.Empty;
+            }
+        }
+
+
+        /// <summary>
+        /// Gets the password of the account to be used when using LDAP queries.
+        /// </summary>
+        /// <value>
+        /// The password.
+        /// </value>
+        public string LdapPassword
+        {
+            get
+            {
+                if (_generalSettings != null)
+                {
+                    return _generalSettings["LdapPassword"];
                 }
                 return String.Empty;
             }

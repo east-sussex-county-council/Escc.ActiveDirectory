@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Configuration;
 using System.DirectoryServices;
 using System.Globalization;
@@ -19,39 +17,39 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// AD password stored in web.config
         /// </summary>
-        private string ADPassword;
+        private readonly string _adPassword;
         /// <summary>
         /// AD user name stored in web.config
         /// </summary>
-        private string ADUser;
+        private readonly string _adUser;
         /// <summary>
         /// AD server path stored in web.config
         /// </summary>
-        private string LDAPPath;
+        private readonly string _ldapPath;
         /// <summary>
         /// private field to store user details
         /// </summary>
-        private Collection<ActiveDirectoryUser> userCollection;
+        private Collection<ActiveDirectoryUser> _userCollection;
         /// <summary>
         /// private field to store group details
         /// </summary>
-        private Collection<ActiveDirectoryGroup> groupsCollection;
+        private Collection<ActiveDirectoryGroup> _groupsCollection;
         /// <summary>
         /// private field to store group names only
         /// </summary>
-        private Collection<string> groupNames;
+        private Collection<string> _groupNames;
         /// <summary>
         /// flag used to influence search filter choice
         /// </summary>
-        private bool searchBylogonFlag;
+        private bool _searchBylogonFlag;
         /// <summary>
         /// flag used to influence search filter choice
         /// </summary>
-        private bool searchByGroupNameFlag;
+        private bool _searchByGroupNameFlag;
         /// <summary>
         /// member to hold current culture info
         /// </summary>
-        private CultureInfo culture = CultureInfo.CurrentCulture;
+        private readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         /// <summary>
         /// Gets or sets the maximum number of results to return (to speed up large queries)
@@ -64,11 +62,14 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Initializes a new instance of the <see cref="ActiveDirectorySearcher"/> class.
         /// </summary>
-        public ActiveDirectorySearcher()
+        public ActiveDirectorySearcher(IActiveDirectorySettings settings=null)
         {
-            ADUser = ConfigurationManager.AppSettings["ActiveDirectoryUser"];
-            ADPassword = ConfigurationManager.AppSettings["ADPassword"];
-            LDAPPath = ConfigurationManager.AppSettings["LDAPPath"];
+            if (settings != null)
+            {
+                _adUser = settings.LdapUsername;
+                _adPassword = settings.LdapPassword;
+                _ldapPath = settings.LdapPath;
+            }
         }
         #endregion
 
@@ -116,16 +117,16 @@ namespace Escc.ActiveDirectory
         /// <returns>A single ActiveDirectoryUser object containing most properties associated with an AD user object, or <c>null</c> if not found.</returns>
         public ActiveDirectoryUser GetUserBySamAccountName(string accountName, IList<string> propertiesToLoad)
         {
-            searchBylogonFlag = true;
+            _searchBylogonFlag = true;
             SearchForUsers(accountName, propertiesToLoad);
-            searchBylogonFlag = false;
+            _searchBylogonFlag = false;
 
-            foreach (ActiveDirectoryUser user in this.userCollection)
+            foreach (ActiveDirectoryUser user in this._userCollection)
             {
                 if (user.SamAccountName != null)
                 {
                     string logonName = user.SamAccountName;
-                    if (string.Compare(accountName, logonName, true, culture) == 0)
+                    if (string.Compare(accountName, logonName, true, _culture) == 0)
                     {
                         OnUserFound();
                         return user;
@@ -145,9 +146,9 @@ namespace Escc.ActiveDirectory
         /// </returns>
         public Collection<ActiveDirectoryUser> SearchForUsersBySamAccountName(string searchText, IList<string> propertiesToLoad)
         {
-            this.searchBylogonFlag = true;
+            this._searchBylogonFlag = true;
             var users = this.SearchForUsers(searchText, propertiesToLoad);
-            this.searchBylogonFlag = false;
+            this._searchBylogonFlag = false;
             return users;
         }
 
@@ -161,15 +162,15 @@ namespace Escc.ActiveDirectory
         /// </returns>
         public Collection<ActiveDirectoryUser> SearchForUsers(string searchText, IList<string> propertiesToLoad)
         {
-            this.userCollection = new Collection<ActiveDirectoryUser>();
-            using (var ent = new DirectoryEntry(LDAPPath))
+            this._userCollection = new Collection<ActiveDirectoryUser>();
+            using (var ent = new DirectoryEntry(_ldapPath))
             {
-                ent.Username = this.ADUser;
-                ent.Password = this.ADPassword;
+                ent.Username = this._adUser;
+                ent.Password = this._adPassword;
                 using (DirectorySearcher ds = new DirectorySearcher())
                 {
                     ds.SearchRoot = ent;
-                    if (searchBylogonFlag)
+                    if (_searchBylogonFlag)
                     {
                         ds.Filter = "(&(saMAccountName=" + searchText + ")(objectClass=user)(objectCategory=Person))";
                     }
@@ -214,7 +215,7 @@ namespace Escc.ActiveDirectory
                     }
                 }
             }
-            return this.userCollection;
+            return this._userCollection;
         }
 
         /// <summary>
@@ -224,10 +225,10 @@ namespace Escc.ActiveDirectory
         /// <returns>A single ActiveDirectoryGroup containing ActiveDirectoryGroupMember objects, or <c>null</c> if not found. </returns>
         public ActiveDirectoryGroup GetGroupByGroupName(string groupName)
         {
-            searchByGroupNameFlag = true;
+            _searchByGroupNameFlag = true;
             SearchForGroups(groupName);
-            searchByGroupNameFlag = false;
-            foreach (ActiveDirectoryGroup group in this.groupsCollection)
+            _searchByGroupNameFlag = false;
+            foreach (ActiveDirectoryGroup group in this._groupsCollection)
             {
                 foreach (ActiveDirectoryGroupMember member in group)
                 {
@@ -248,11 +249,11 @@ namespace Escc.ActiveDirectory
         /// <returns>An collection containing ActiveDirectoryGroup objects</returns>
         public Collection<ActiveDirectoryGroup> SearchForGroups(string searchText)
         {
-            this.groupsCollection = new Collection<ActiveDirectoryGroup>();
-            DirectoryEntry ent = new DirectoryEntry(LDAPPath);
+            this._groupsCollection = new Collection<ActiveDirectoryGroup>();
+            DirectoryEntry ent = new DirectoryEntry(_ldapPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
-            if (searchByGroupNameFlag)
+            if (_searchByGroupNameFlag)
             {
                 ds.Filter = "(&(CN=" + searchText + ")(objectClass=group))";
             }
@@ -282,7 +283,7 @@ namespace Escc.ActiveDirectory
                 ds.Dispose();
                 ent.Close();
             }
-            return this.groupsCollection;
+            return this._groupsCollection;
         }
         
         /// <summary>
@@ -292,8 +293,8 @@ namespace Escc.ActiveDirectory
         /// <returns>Group names as strings</returns>
         public Collection<string> GetGroupNames(string searchText)
         {
-            groupNames = new Collection<string>();
-            DirectoryEntry ent = new DirectoryEntry(LDAPPath);
+            _groupNames = new Collection<string>();
+            DirectoryEntry ent = new DirectoryEntry(_ldapPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
             ds.Filter = "(&(anr=" + searchText + ")(objectClass=group))";
@@ -304,9 +305,9 @@ namespace Escc.ActiveDirectory
                 path = path.Remove(0, 28);
                 path = path.Replace("CN=", "");
                 path = path.Remove(path.IndexOf(","), path.Length - path.IndexOf(","));
-                groupNames.Add(path);
+                _groupNames.Add(path);
             }
-            return this.groupNames;
+            return this._groupNames;
         }
         /// <summary>
         /// Finds group paths based on ambiguous name resolution
@@ -315,17 +316,17 @@ namespace Escc.ActiveDirectory
         /// <returns>Group paths as strings</returns>
         public Collection<string> GetGroupPaths(string searchText)
         {
-            groupNames = new Collection<string>();
-            DirectoryEntry ent = new DirectoryEntry(LDAPPath);
+            _groupNames = new Collection<string>();
+            DirectoryEntry ent = new DirectoryEntry(_ldapPath);
             DirectorySearcher ds = new DirectorySearcher();
             ds.SearchRoot = ent;
             ds.Filter = "(&(anr=" + searchText + ")(objectClass=group))";
             SearchResultCollection src = ds.FindAll();
             foreach (SearchResult res in src)
             {
-                groupNames.Add(res.Path);
+                _groupNames.Add(res.Path);
             }
-            return this.groupNames;
+            return this._groupNames;
         }
         #endregion
         
@@ -348,17 +349,17 @@ namespace Escc.ActiveDirectory
                     foreach (object values in propcoll[key])
                     {
                         // get the group name of this entry
-                        if (string.Compare(key, "cn", true, culture) == 0)
+                        if (string.Compare(key, "cn", true, _culture) == 0)
                         {
                             groupName = values.ToString();
                         }
                         // get the samAccountName name of this entry
-                        if (string.Compare(key, "samAccountName", true, culture) == 0)
+                        if (string.Compare(key, "samAccountName", true, _culture) == 0)
                         {
                             samAccountName = values.ToString();
                         }
                         // get the member name of this entry
-                        if (string.Compare(key, "member", true, culture) == 0)
+                        if (string.Compare(key, "member", true, _culture) == 0)
                         {
                             ActiveDirectoryGroupMember member = new ActiveDirectoryGroupMember();
                             member.GroupName = groupName;
@@ -370,7 +371,7 @@ namespace Escc.ActiveDirectory
                 }
                 if (group != null)
                 {
-                    groupsCollection.Add(group);
+                    _groupsCollection.Add(group);
                 }
             }
         }
@@ -413,7 +414,7 @@ namespace Escc.ActiveDirectory
                             if (userProperty != null) userProperty.SetValue(user, ParseString(propertyValues[0]), null);
                         }
                     }
-                    userCollection.Add(user);
+                    _userCollection.Add(user);
                 }
             }
         }
@@ -440,138 +441,138 @@ namespace Escc.ActiveDirectory
                     foreach (object values in propcoll[key])
                     {
                         // get the title of this entry 
-                        if (string.Compare(key, "title", true, culture) == 0)
+                        if (string.Compare(key, "title", true, _culture) == 0)
                         {
                             user.Title = ParseString(values);
                         }
                         // get the title of this entry  
-                        if (string.Compare(key, "sn", true, culture) == 0)
+                        if (string.Compare(key, "sn", true, _culture) == 0)
                         {
                             user.SN = ParseString(values);
                         }
                         // get the distinguished name of this entry
-                        if (string.Compare(key, "distinguishedname", true, culture) == 0)
+                        if (string.Compare(key, "distinguishedname", true, _culture) == 0)
                         {
                             user.DistinguishedName = ParseString(values);
                         }
                         // get the name of this entry
-                        if (string.Compare(key, "name", true, culture) == 0)
+                        if (string.Compare(key, "name", true, _culture) == 0)
                         {
                             user.Name = ParseString(values);
                         }
                         // get the given name of this entry
-                        if (string.Compare(key, "givenname", true, culture) == 0)
+                        if (string.Compare(key, "givenname", true, _culture) == 0)
                         {
                             user.GivenName = ParseString(values);
                         }
                         // get the display name of this entry
-                        if (string.Compare(key, "displayname", true, culture) == 0)
+                        if (string.Compare(key, "displayname", true, _culture) == 0)
                         {
                             user.DisplayName = ParseString(values);
                         }
                         // get the mail name of this entry
-                        if (string.Compare(key, "mail", true, culture) == 0)
+                        if (string.Compare(key, "mail", true, _culture) == 0)
                         {
                             user.Mail = ParseString(values);
                         }
                         // get the targetAddress name of this entry
-                        if (string.Compare(key, "targetaddress", true, culture) == 0)
+                        if (string.Compare(key, "targetaddress", true, _culture) == 0)
                         {
                             user.TargetAddress = ParseString(values);
                         }
                         // get the sAMAccountName name of this entry
-                        if (string.Compare(key, "samaccountname", true, culture) == 0)
+                        if (string.Compare(key, "samaccountname", true, _culture) == 0)
                         {
                             user.SamAccountName = ParseString(values);
                         }
                         // get the office address for this entry
-                        if (string.Compare(key, "physicaldeliveryofficename", true, culture) == 0)
+                        if (string.Compare(key, "physicaldeliveryofficename", true, _culture) == 0)
                         {
                             user.PhysicalDeliveryOfficeName = ParseString(values);
                         }
                         // get the telephone number for this entry
-                        if (string.Compare(key, "telephonenumber", true, culture) == 0)
+                        if (string.Compare(key, "telephonenumber", true, _culture) == 0)
                         {
                             user.TelephoneNumber = ParseString(values);
                         }
                         // get the department for this entry
-                        if (string.Compare(key, "department", true, culture) == 0)
+                        if (string.Compare(key, "department", true, _culture) == 0)
                         {
                             user.Department = ParseString(values);
                         }
                         // get the user principal name for this entry
-                        if (string.Compare(key, "userprincipalname", true, culture) == 0)
+                        if (string.Compare(key, "userprincipalname", true, _culture) == 0)
                         {
                             user.UserPrincipalName = ParseString(values);
                         }
                         // get permission groups for this entry
-                        if (string.Compare(key, "memberof", true, culture) == 0)
+                        if (string.Compare(key, "memberof", true, _culture) == 0)
                         {
                             user.MemberOf = ParseString(values);
                         }
                         // get description for this entry
-                        if (string.Compare(key, "description", true, culture) == 0)
+                        if (string.Compare(key, "description", true, _culture) == 0)
                         {
                             user.Description = ParseString(values);
                         }
                         // get company for this entry
-                        if (string.Compare(key, "company", true, culture) == 0)
+                        if (string.Compare(key, "company", true, _culture) == 0)
                         {
                             user.Company = ParseString(values);
                         }
                         // get street address for this entry
-                        if (string.Compare(key, "streetaddress", true, culture) == 0)
+                        if (string.Compare(key, "streetaddress", true, _culture) == 0)
                         {
                             user.StreetAddress = ParseString(values);
                         }
                         // get company for this entry
-                        if (string.Compare(key, "postalcode", true, culture) == 0)
+                        if (string.Compare(key, "postalcode", true, _culture) == 0)
                         {
                             user.PostalCode = ParseString(values);
                         }
                         // get company for this entry
-                        if (string.Compare(key, "manager", true, culture) == 0)
+                        if (string.Compare(key, "manager", true, _culture) == 0)
                         {
                             user.Manager = ParseString(values);
                         }
                         // get company for this entry
-                        if (string.Compare(key, "st", true, culture) == 0)
+                        if (string.Compare(key, "st", true, _culture) == 0)
                         {
                             user.ST = ParseString(values);
                         }
                         // get mobile for this entry
-                        if (string.Compare(key, "mobile", true, culture) == 0)
+                        if (string.Compare(key, "mobile", true, _culture) == 0)
                         {
                             user.Mobile = ParseString(values);
                         }
                         // get home phone for this entry
-                        if (string.Compare(key, "homephone", true, culture) == 0)
+                        if (string.Compare(key, "homephone", true, _culture) == 0)
                         {
                             user.HomePhone = ParseString(values);
                         }
                         // get L for this entry
-                        if (string.Compare(key, "l", true, culture) == 0)
+                        if (string.Compare(key, "l", true, _culture) == 0)
                         {
                             user.L = ParseString(values);
                         }
                         // get Location for this entry
-                        if (string.Compare(key, "location", true, culture) == 0)
+                        if (string.Compare(key, "location", true, _culture) == 0)
                         {
                             user.Location = ParseString(values);
                         }
                         // get c for this entry
-                        if (string.Compare(key, "c", true, culture) == 0)
+                        if (string.Compare(key, "c", true, _culture) == 0)
                         {
                             user.C = ParseString(values);
                         }
                         // get cn for this entry
-                        if (string.Compare(key, "cn", true, culture) == 0)
+                        if (string.Compare(key, "cn", true, _culture) == 0)
                         {
                             user.CN = ParseString(values);
                         }
                     }
                 }
-                userCollection.Add(user);
+                _userCollection.Add(user);
             }
         }
         /// <summary>
@@ -609,7 +610,7 @@ namespace Escc.ActiveDirectory
             if (this.GroupFound != null)
             {
                 // raise event
-                this.GroupFound(this, new GroupFoundEventArgs(this.groupsCollection));
+                this.GroupFound(this, new GroupFoundEventArgs(this._groupsCollection));
             }
         }
         /// <summary>
@@ -623,7 +624,7 @@ namespace Escc.ActiveDirectory
             if (this.GroupsFound != null)
             {
                 // raise event
-                this.GroupsFound(this, new GroupsFoundEventArgs(this.groupsCollection));
+                this.GroupsFound(this, new GroupsFoundEventArgs(this._groupsCollection));
             }
         }
         /// <summary>
@@ -636,7 +637,7 @@ namespace Escc.ActiveDirectory
             if (this.UserFound != null)
             {
                 // raise event
-                this.UserFound(this, new UserFoundEventArgs(this.userCollection));
+                this.UserFound(this, new UserFoundEventArgs(this._userCollection));
             }
         }
         /// <summary>
@@ -649,7 +650,7 @@ namespace Escc.ActiveDirectory
             if (this.UsersFound != null)
             {
                 // raise event
-                this.UsersFound(this, new UsersFoundEventArgs(this.userCollection));
+                this.UsersFound(this, new UsersFoundEventArgs(this._userCollection));
             }
         }
         #endregion

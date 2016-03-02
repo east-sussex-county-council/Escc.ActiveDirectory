@@ -119,6 +119,7 @@
     <Compile Include="GroupFoundEventHandler.cs" />
     <Compile Include="GroupsFoundEventArgs.cs" />
     <Compile Include="GroupsFoundEventHandler.cs" />
+    <Compile Include="IActiveDirectorySettings.cs" />
     <Compile Include="IImpersonationWrapper.cs" />
     <Compile Include="IActiveDirectorySearcher.cs" />
     <Compile Include="ImpersonatorWrapper.cs" />

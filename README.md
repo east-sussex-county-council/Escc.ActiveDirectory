@@ -2,30 +2,32 @@
 
 A library for querying users and groups in Active Directory.
 
-## Check user permissions in ASP.NET
+## Check whether a user is in a group
 
-Check whether the current user of an ASP.NET application is a member of an Active Directory group using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application.
+You can check whether the current user of an ASP.NET application is a member of an Active Directory group using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application. 
+
+Any `IUserGroupsProvider` can be used instead of `LogonIdentityUserGroupsProvider` to provide the list of all the groups a user is in.
 
 	var defaultDomain = new ActiveDirectorySettingsFromConfiguration().DefaultDomain;
 	var sessionCache = new SessionPermissionsResultCache();
-	var permissions = new UserGroupMembership(new LogonIdentityUserGroupsProvider(), defaultDomain, sessionCache);
-	var result = permissions.UserIsInGroup(new [] { "group1, "group2" });
+	var permissions = new UserGroupMembership(defaultDomain, sessionCache);
+	var result = permissions.UserIsInGroup(new LogonIdentityUserGroupsProvider(), new [] { "group1, "group2" });
 
-## Check user permissions in any .NET environment 
+You can also check whether a user is in a group (or list of groups) based on their `WindowsIdentity`. When using a `WindowsIdentity` the `defaultDomain` and `resultCache` options are not supported.
 
-###Check whether a user is in a single group or a list of groups
-
-	var searcher = new ActiveDirectorySearcher(new ActiveDirectorySettingsFromConfiguration());
+	var permissions = new UserGroupMembership();
 	var userToCheck = HttpContext.Current.User.Identity as WindowsIdentity;
-	searcher.CheckGroupMembership(userToCheck, "group1" })
-	searcher.GetGroupMembership(userToCheck, new[] { "group1", "group2" })
+	permissions.UserIsInGroup(userToCheck, "group1" })
+	permissions.UserIsInGroups(userToCheck, new[] { "group1", "group2" })
 
+The interface `IUserGroupMembershipProvider` lets you specify your own implementations of `UserGroupMembershipProvider`.
 
-### Look up a user or users
+## Look up a user or users
 
-This requires the LDAP connection details when creating the `ActiveDirectorySearcher` instance. Some methods use [ambiguous name resolution](http://social.technet.microsoft.com/wiki/contents/articles/22653.active-directory-ambiguous-name-resolution.aspx).
+This requires an `LdapActiveDirectorySearcher` created with instance with LDAP connection settings (see below). Some methods use [ambiguous name resolution](http://social.technet.microsoft.com/wiki/contents/articles/22653.active-directory-ambiguous-name-resolution.aspx).
 
-	var searcher = new ActiveDirectorySearcher(new ActiveDirectorySettingsFromConfiguration());
+	var settings = new ActiveDirectorySettingsFromConfiguration();	
+	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword);
 	var propertiesToLoad = new [] { "displayname", "mail" };
 	
 	// Get one user when you know the username
@@ -66,13 +68,14 @@ The result is returned much faster if you specify just the properties you need, 
 - c
 - cn
 
-### Look up a group or groups
+## Look up a group or groups
 
-This requires the LDAP connection details when creating the `ActiveDirectorySearcher` instance. 
+This requires an `LdapActiveDirectorySearcher` created with instance with LDAP connection settings (see below). 
 
 When using [ambiguous name resolution](http://social.technet.microsoft.com/wiki/contents/articles/22653.active-directory-ambiguous-name-resolution.aspx) you can optionally search using a wildcard (eg "groupname*").
 
-	var searcher = new ActiveDirectorySearcher(new ActiveDirectorySettingsFromConfiguration());
+	var settings = new ActiveDirectorySettingsFromConfiguration();
+	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword);
     
 	// Get one group when you know the name
 	searcher.GetGroupByGroupName("groupname");
@@ -83,9 +86,10 @@ When using [ambiguous name resolution](http://social.technet.microsoft.com/wiki/
 	// Get group names based on ambiguous name resolution    
     searcher.GetGroupNames("incompletegroupna");
     
+	// Get group paths based on ambiguous name resolution    
     searcher.GetGroupPaths("incompletegroupna");
 
-The interface `IActiveDirectorySearcher` lets you specify your own implementations of `ActiveDirectorySearcher`.
+The interface `IActiveDirectorySearcher` lets you specify your own implementations of `LdapActiveDirectorySearcher`.
 
 ## Impersonate an account
 
@@ -109,7 +113,7 @@ The interface `IImpersonationWrapper` lets you specify your own implementations 
 
 ## Configuration settings
 
-Some settings can be saved in `web.config` or `app.config`.
+Some settings can be saved in `web.config` or `app.config` and read back using `new ActiveDirectorySettingsFromConfiguration()`.
 
 	<configuration>
 	  <configSections>

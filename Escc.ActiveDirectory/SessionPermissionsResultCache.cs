@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 
 namespace Escc.ActiveDirectory
@@ -16,7 +17,7 @@ namespace Escc.ActiveDirectory
         /// </summary>
         /// <param name="groupsToMatch">The groups to match.</param>
         /// <param name="result"><c>true</c> if the user was in the group; <c>false</c> otherwise</param>
-        public void SaveGroupMatchResult(string[] groupsToMatch, bool result)
+        public void SaveGroupMatchResult(IList<string> groupsToMatch, bool result)
         {
             // Important to save in session rather than an instance variable, to minimise security checks
             // from multiple instances of the class.
@@ -27,7 +28,7 @@ namespace Escc.ActiveDirectory
             if (sess[SessionKey] != null) groupMatchResults = sess[SessionKey] as Dictionary<int, bool>;
             if (groupMatchResults == null) groupMatchResults = new Dictionary<int, bool>();
 
-            var key = String.Join(String.Empty, groupsToMatch).ToUpperInvariant().GetHashCode();
+            var key = String.Join(String.Empty, groupsToMatch.ToArray()).ToUpperInvariant().GetHashCode();
             if (!groupMatchResults.ContainsKey(key)) groupMatchResults.Add(key, result);
 
             sess[SessionKey] = groupMatchResults;
@@ -38,7 +39,7 @@ namespace Escc.ActiveDirectory
         /// </summary>
         /// <param name="groupsToMatch">The groups to match.</param>
         /// <returns></returns>
-        public bool? CheckGroupMatchResult(string[] groupsToMatch)
+        public bool? CheckGroupMatchResult(IList<string> groupsToMatch)
         {
             // Important to use session to cache this, because security checks can take a while so we need
             // to minimise the number of times they're done, even across instances. When using inside a loop, 
@@ -47,7 +48,7 @@ namespace Escc.ActiveDirectory
             if (sess == null || sess[SessionKey] == null) return null;
 
             var groupMatchResults = sess[SessionKey] as Dictionary<int, bool>;
-            var key = String.Join(String.Empty, groupsToMatch).ToUpperInvariant().GetHashCode();
+            var key = String.Join(String.Empty, groupsToMatch.ToArray()).ToUpperInvariant().GetHashCode();
             if (!groupMatchResults.ContainsKey(key)) return null;
 
             return groupMatchResults[key];

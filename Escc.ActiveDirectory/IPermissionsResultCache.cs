@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Escc.ActiveDirectory
 {
     /// <summary>
@@ -10,13 +12,13 @@ namespace Escc.ActiveDirectory
         /// </summary>
         /// <param name="groupsToMatch">The groups to match.</param>
         /// <param name="result"><c>true</c> if the user was in the group; <c>false</c> otherwise</param>
-        void SaveGroupMatchResult(string[] groupsToMatch, bool result);
+        void SaveGroupMatchResult(IList<string> groupsToMatch, bool result);
 
         /// <summary>
         /// Gets the result of a security group check if it's already been done.
         /// </summary>
         /// <param name="groupsToMatch">The groups to match.</param>
         /// <returns></returns>
-        bool? CheckGroupMatchResult(string[] groupsToMatch);
+        bool? CheckGroupMatchResult(IList<string> groupsToMatch);
     }
 }

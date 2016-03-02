@@ -111,7 +111,7 @@
     <Compile Include="ActiveDirectoryGroupMember.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ActiveDirectorySearcher.cs" />
+    <Compile Include="LdapActiveDirectorySearcher.cs" />
     <Compile Include="ActiveDirectoryUser.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -124,6 +124,7 @@
     <Compile Include="IActiveDirectorySearcher.cs" />
     <Compile Include="ImpersonatorWrapper.cs" />
     <Compile Include="IPermissionsResultCache.cs" />
+    <Compile Include="IUserGroupMembershipProvider.cs" />
     <Compile Include="IUserGroupsProvider.cs" />
     <Compile Include="LogonIdentityUserGroupsProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -135,7 +136,7 @@
     <Compile Include="UserFoundEventHandler.cs" />
     <Compile Include="UsersFoundEventArgs.cs" />
     <Compile Include="UsersFoundEventHandler.cs" />
-    <Compile Include="UserGroupMembership.cs" />
+    <Compile Include="UserGroupMembershipProvider.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

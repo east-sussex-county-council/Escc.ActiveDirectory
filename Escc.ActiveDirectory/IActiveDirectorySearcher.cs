@@ -11,22 +11,6 @@ namespace Escc.ActiveDirectory
     public interface IActiveDirectorySearcher
     {
         /// <summary>
-        /// Checks to see if a user belongs to a set of named domain groups
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="groupNameCollection"></param>
-        /// <returns>Returns group names and a boolean indicating membership.</returns>
-        Dictionary<string, bool> GetGroupMembership(WindowsIdentity wi, IEnumerable<string> groupNameCollection);
-
-        /// <summary>
-        /// Checks to see if a user belongs to a given group.
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="domainGroup">string</param>
-        /// <returns>a boolean</returns>
-        bool CheckGroupMembership(WindowsIdentity wi, string domainGroup);
-
-        /// <summary>
         /// Gets a user based on account name.
         /// </summary>
         /// <param name="accountName">user logon name</param>

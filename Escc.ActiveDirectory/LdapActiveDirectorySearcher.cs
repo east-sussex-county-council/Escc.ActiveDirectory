@@ -9,9 +9,9 @@ using System.Security.Principal;
 namespace Escc.ActiveDirectory
 {
     /// <summary>
-    /// Search Active Directory for user and role membership data
+    /// Search Active Directory for user and role membership data using LDAP
     /// </summary>
-    public class ActiveDirectorySearcher : IActiveDirectorySearcher
+    public class LdapActiveDirectorySearcher : IActiveDirectorySearcher
     {
         #region private fields
         /// <summary>
@@ -60,55 +60,20 @@ namespace Escc.ActiveDirectory
         #region constructors, destructors and initialisers
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ActiveDirectorySearcher"/> class.
+        /// Initializes a new instance of the <see cref="LdapActiveDirectorySearcher" /> class.
         /// </summary>
-        public ActiveDirectorySearcher(IActiveDirectorySettings settings=null)
+        /// <param name="ldapPath">The LDAP path.</param>
+        /// <param name="username">The username.</param>
+        /// <param name="password">The password.</param>
+        public LdapActiveDirectorySearcher(string ldapPath, string username, string password)
         {
-            if (settings != null)
-            {
-                _adUser = settings.LdapUsername;
-                _adPassword = settings.LdapPassword;
-                _ldapPath = settings.LdapPath;
-            }
+            _adUser = username;
+            _adPassword = password;
+            _ldapPath = ldapPath;
         }
         #endregion
 
         #region public methods
-        /// <summary>
-        /// Checks to see if a user belongs to a set of named domain groups
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="groupNameCollection"></param>
-        /// <returns>Returns group names and a boolean indicating membership.</returns>
-        public Dictionary<string,bool> GetGroupMembership(WindowsIdentity wi, IEnumerable<string> groupNameCollection)
-        {
-            var groupMembershipCollection = new Dictionary<string, bool>();
-            bool isInRole;
-            WindowsPrincipal wp = new WindowsPrincipal(wi);
-            if (groupNameCollection != null)
-            {
-                foreach (string group in groupNameCollection)
-                {
-                    isInRole = wp.IsInRole(group);
-                    groupMembershipCollection.Add(group, isInRole);
-                }
-            }
-
-            return groupMembershipCollection;
-        }
-        
-        /// <summary>
-        /// Checks to see if a user belongs to a given NT group.
-        /// </summary>
-        /// <param name="wi">System.Security.Principal.WindowsIdentity</param>
-        /// <param name="domainGroup">string</param>
-        /// <returns>a boolean</returns>
-        public bool CheckGroupMembership(WindowsIdentity wi, string domainGroup)
-        {
-            WindowsPrincipal wp = new WindowsPrincipal(wi);
-            return wp.IsInRole(domainGroup);
-        }
-
         /// <summary>
         /// Gets an Active Directory user based on logon name.
         /// </summary>

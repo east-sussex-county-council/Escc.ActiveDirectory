@@ -4,23 +4,22 @@ A library for querying users and groups in Active Directory.
 
 ## Check whether a user is in a group
 
-You can check whether the current user of an ASP.NET application is a member of an Active Directory group using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application. 
-
-Any `IUserGroupsProvider` can be used instead of `LogonIdentityUserGroupsProvider` to provide the list of all the groups a user is in.
+You can check whether the current user of an ASP.NET application is a member of an Active Directory group (or list of groups) using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application. 
 
 	var defaultDomain = new ActiveDirectorySettingsFromConfiguration().DefaultDomain;
 	var sessionCache = new SessionPermissionsResultCache();
-	var permissions = new UserGroupMembership(defaultDomain, sessionCache);
-	var result = permissions.UserIsInGroup(new LogonIdentityUserGroupsProvider(), new [] { "group1, "group2" });
+	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain, sessionCache);
+	bool result = permissions.UserIsInGroup(new [] { "group1, "group2" });
+	Dictionary<string, bool> groupResults = permissions.UserIsInGroups(new [] { "group1, "group2" });
 
 You can also check whether a user is in a group (or list of groups) based on their `WindowsIdentity`. When using a `WindowsIdentity` the `defaultDomain` and `resultCache` options are not supported.
 
-	var permissions = new UserGroupMembership();
-	var userToCheck = HttpContext.Current.User.Identity as WindowsIdentity;
-	permissions.UserIsInGroup(userToCheck, "group1" })
-	permissions.UserIsInGroups(userToCheck, new[] { "group1", "group2" })
+	var userToCheck = WindowsIdentity.GetCurrent();
+	var permissions = new WindowsIdentityGroupMembershipChecker(userToCheck);
+	bool result = permissions.UserIsInGroup(new [] { "group1, "group2" })
+	Dictionary<string, bool> groupResults = permissions.UserIsInGroups(new[] { "group1", "group2" })
 
-The interface `IUserGroupMembershipProvider` lets you specify your own implementations of `UserGroupMembershipProvider`.
+Both of these classes implement the `IGroupMembershipChecker` interface.
 
 ## Look up a user or users
 

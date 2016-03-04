@@ -135,3 +135,6 @@ Some settings can be saved in `web.config` or `app.config` and read back using `
 	  </Escc.ActiveDirectory>
 	</configuration>
 
+## NuGet package
+
+The NuGet package is created using the [NuBuild](https://github.com/bspell1/NuBuild) extension for Visual Studio.

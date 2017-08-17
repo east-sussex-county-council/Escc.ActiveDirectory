@@ -116,6 +116,10 @@ namespace Escc.ActiveDirectory
 		/// private member field for the AD 'CN' property value
 		/// </summary>
 		private string cn;
+        /// <summary>
+        /// private member field for the AD 'whenCreated' property value
+        /// </summary>
+        private string whenCreated;
 
         /// <summary>
 		/// private memeber field to store memberof groups as a string array
@@ -523,6 +527,7 @@ namespace Escc.ActiveDirectory
                 objectguid = value;
             }
         }
+        */
 
         /// <summary>
         /// 
@@ -531,14 +536,13 @@ namespace Escc.ActiveDirectory
         {
             get
             {
-                return whenchanged;
+                return whenCreated;
             }
             set
             {
-                whenchanged = value;
+                whenCreated = value;
             }
         }
-        */
       
 		/// <summary>
 		/// 

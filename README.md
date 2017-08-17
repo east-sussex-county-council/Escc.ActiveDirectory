@@ -66,6 +66,7 @@ The result is returned much faster if you specify just the properties you need, 
 - location
 - c
 - cn
+- whencreated
 
 ## Look up a group or groups
 

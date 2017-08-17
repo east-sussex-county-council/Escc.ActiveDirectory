@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Configuration;
@@ -375,7 +376,7 @@ namespace Escc.ActiveDirectory
                             // AD potentially holds multiple values for a property, but the ActiveDirectoryUser object only 
                             // supports one for each, so just use the first value. CreateUserCollectionAllProperties just used
                             // the last value because it overwrites any previous one found.
-                            PropertyInfo userProperty = user.GetType().GetProperty(key);
+                            PropertyInfo userProperty = user.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
                             if (userProperty != null) userProperty.SetValue(user, ParseString(propertyValues[0]), null);
                         }
                     }
@@ -405,6 +406,120 @@ namespace Escc.ActiveDirectory
                     // Loop through all the values associated with our key, testing every possible key they might match.
                     foreach (object values in propcoll[key])
                     {
+                        switch (key.ToLower())
+                        {
+                            case "title":
+                                // get the title of this entry 
+                                user.Title = ParseString(values);
+                                break;
+                            case "sn":
+                                // get the sn of this entry 
+                                user.SN = ParseString(values);
+                                break;
+                            case "distinguishedname":
+                                // get the distinguished of this entry 
+                                user.DistinguishedName = ParseString(values);
+                                break;
+                            case "name":
+                                // get the name of this entry 
+                                user.Name = ParseString(values);
+                                break;
+                            case "givenname":
+                                // get the given name of this entry 
+                                user.GivenName = ParseString(values);
+                                break;
+                            case "displayname":
+                                // get the display name of this entry 
+                                user.DisplayName = ParseString(values);
+                                break;
+                            case "mail":
+                                // get the mail of this entry 
+                                user.Mail = ParseString(values);
+                                break;
+                            case "targetaddress":
+                                // get the targetaddress of this entry 
+                                user.TargetAddress = ParseString(values);
+                                break;
+                            case "samaccountname":
+                                // get the sAMAccountName of this entry 
+                                user.SamAccountName = ParseString(values);
+                                break;
+                            case "physicaldeliveryofficename":
+                                // get the office address of this entry 
+                                user.PhysicalDeliveryOfficeName = ParseString(values);
+                                break;
+                            case "telephonenumber":
+                                // get the telephone number of this entry 
+                                user.TelephoneNumber = ParseString(values);
+                                break;
+                            case "department":
+                                // get the department of this entry 
+                                user.Department = ParseString(values);
+                                break;
+                            case "userprincipalname":
+                                // get the principal of this entry 
+                                user.UserPrincipalName = ParseString(values);
+                                break;
+                            case "memberof":
+                                // get the permission groups of this entry 
+                                user.MemberOf = ParseString(values);
+                                break;
+                            case "description":
+                                // get the description of this entry 
+                                user.Description = ParseString(values);
+                                break;
+                            case "company":
+                                // get the company of this entry 
+                                user.Company = ParseString(values);
+                                break;
+                            case "streetaddress":
+                                // get the street address of this entry 
+                                user.StreetAddress = ParseString(values);
+                                break;
+                            case "postalcode":
+                                // get the postal code of this entry 
+                                user.PostalCode = ParseString(values);
+                                break;
+                            case "manager":
+                                // get the manager of this entry 
+                                user.Manager = ParseString(values);
+                                break;
+                            case "st":
+                                // get the st of this entry 
+                                user.ST = ParseString(values);
+                                break;
+                            case "mobile":
+                                // get the mobile of this entry 
+                                user.Mobile = ParseString(values);
+                                break;
+                            case "homephone":
+                                // get the home phone of this entry 
+                                user.HomePhone = ParseString(values);
+                                break;
+                            case "l":
+                                // get the L of this entry 
+                                user.L = ParseString(values);
+                                break;
+                            case "location":
+                                // get the Location of this entry 
+                                user.Location = ParseString(values);
+                                break;
+                            case "c":
+                                // get the c of this entry 
+                                user.C = ParseString(values);
+                                break;
+                            case "cn":
+                                // get the cn of this entry 
+                                user.CN = ParseString(values);
+                                break;
+                            case "whencreated":
+                                // get the when created of this entry 
+                                user.WhenCreated = ParseString(values);
+                                break;
+                            default:
+                                break;
+                        }
+                        /*
                         // get the title of this entry 
                         if (string.Compare(key, "title", true, _culture) == 0)
                         {
@@ -535,6 +650,12 @@ namespace Escc.ActiveDirectory
                         {
                             user.CN = ParseString(values);
                         }
+                        // get when created for this entry
+                        if (string.Compare(key, "whencreated", true, _culture) == 0)
+                        {
+                            user.WhenCreated = ParseString(values);
+                        }
+                        */
                     }
                 }
                 _userCollection.Add(user);

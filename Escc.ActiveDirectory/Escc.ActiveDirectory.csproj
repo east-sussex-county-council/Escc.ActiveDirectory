@@ -137,11 +137,14 @@
     <Compile Include="UsersFoundEventHandler.cs" />
     <Compile Include="WindowsIdentityGroupMembershipChecker.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="build-nuget.cmd" />
+    <None Include="Escc.ActiveDirectory.nuspec" />
+  </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>if "$(ConfigurationName)"=="Release" "$(ProjectDir)build-nuget.cmd" $(ProjectDir)</PostBuildEvent>
   </PropertyGroup>
 </Project>

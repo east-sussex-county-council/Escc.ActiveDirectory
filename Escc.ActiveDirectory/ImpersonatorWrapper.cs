@@ -11,7 +11,7 @@ namespace Escc.ActiveDirectory
     /// </summary>
     /// <remarks>This class allows <see cref="IImpersonationWrapper"/> to be injected as a dependency where required, 
     /// without making <see cref="Impersonator"/> non-static. It's not clear whether it is required to be static to work.</remarks>
-    class ImpersonatorWrapper : IImpersonationWrapper
+    public class ImpersonatorWrapper : IImpersonationWrapper
     {
         /// <summary>
         /// Impersonates an Active Directory user.

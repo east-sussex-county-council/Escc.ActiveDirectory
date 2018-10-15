@@ -83,6 +83,7 @@ namespace Escc.ActiveDirectory
         /// <returns>A single ActiveDirectoryUser object containing most properties associated with an AD user object, or <c>null</c> if not found.</returns>
         public ActiveDirectoryUser GetUserBySamAccountName(string accountName, IList<string> propertiesToLoad)
         {
+            accountName = StripDomainFromSearchTerm(accountName);
             _searchBylogonFlag = true;
             SearchForUsers(accountName, propertiesToLoad);
             _searchBylogonFlag = false;
@@ -136,6 +137,9 @@ namespace Escc.ActiveDirectory
                 using (DirectorySearcher ds = new DirectorySearcher())
                 {
                     ds.SearchRoot = ent;
+
+                    searchText = StripDomainFromSearchTerm(searchText);
+
                     if (_searchBylogonFlag)
                     {
                         ds.Filter = "(&(saMAccountName=" + searchText + ")(objectClass=user)(objectCategory=Person))";
@@ -148,7 +152,7 @@ namespace Escc.ActiveDirectory
                     // If possible, restrict the properties to load to make the query faster
                     string[] propertyNames = null;
 
-                    if (propertiesToLoad!= null && propertiesToLoad.Count > 0)
+                    if (propertiesToLoad != null && propertiesToLoad.Count > 0)
                     {
                         propertyNames = new string[propertiesToLoad.Count];
                         propertiesToLoad.CopyTo(propertyNames, 0);
@@ -182,6 +186,19 @@ namespace Escc.ActiveDirectory
                 }
             }
             return this._userCollection;
+        }
+
+        /// <summary>
+        /// The domain isn't required so be helpful and remove it if present, rather than returning no results
+        /// </summary>
+        /// <param name="searchText">The search text.</param>
+        /// <returns></returns>
+        private static string StripDomainFromSearchTerm(string searchText)
+        {
+            var domainSeparator = searchText.IndexOf("\\");
+            if (domainSeparator > 0) { searchText = searchText.Substring(domainSeparator + 1); }
+
+            return searchText;
         }
 
         /// <summary>

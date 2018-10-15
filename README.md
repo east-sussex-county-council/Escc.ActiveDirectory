@@ -2,6 +2,12 @@
 
 A library for querying users and groups in Active Directory.
 
+## Look up the current user in ASP.NET
+
+You don't need this library to find the current username:
+
+	var username = System.Web.HttpContext.Current.User.Identity.Name;
+
 ## Check whether a user is in a group
 
 You can check whether the current user of an ASP.NET application is a member of an Active Directory group (or list of groups) using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application. 
@@ -27,9 +33,10 @@ This requires an `LdapActiveDirectorySearcher` created with instance with LDAP c
 
 	var settings = new ActiveDirectorySettingsFromConfiguration();	
 	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword);
-	var propertiesToLoad = new [] { "displayname", "mail" };
+	var propertiesToLoad = new [] { "samaccountname", "displayname", "mail" };
 	
 	// Get one user when you know the username
+	// Note that propertiesToLoad MUST include "samaccountname" for this to work 
 	searcher.GetUserBySamAccountName("exampleuser", propertiesToLoad); 
  
 	// Get multiple users where you know part of the username

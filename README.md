@@ -142,14 +142,40 @@ Some settings can be saved in `web.config` or `app.config` and read back using `
 	  <Escc.ActiveDirectory>
 	    <GeneralSettings>
 
-		  <!-- The default domain to assume when dealing with users on a single domain -->
-	      <add key="DefaultDomain" value="example" />
+		  <!--  Connection details for LDAP when dealing with users on multiple domains 
+				called ExampleDomain1 and ExampleDomain2 -->
+		  <add key="LdapPath.ExampleDomain1" value="example" />
+	      <add key="LdapUser.ExampleDomain1" value="example" />
+		  <add key="LdapPassword.ExampleDomain1" value="example" />
 
-		  <!-- Connection details used when querying using LDAP -->
+		  <add key="LdapPath.ExampleDomain2" value="example" />
+	      <add key="LdapUser.ExampleDomain2" value="example" />
+		  <add key="LdapPassword.ExampleDomain2" value="example" />
+
+		  <!-- Connection details for LDAP when dealing with users on a single domain 
+			   (you can also use the format specified above) -->
 		  <add key="LdapPath" value="example" />
 	      <add key="LdapUser" value="example" />
 		  <add key="LdapPassword" value="example" />
 
+		  <!-- The default domain to assume when none is specified -->
+	      <add key="DefaultDomain" value="example" />
+
 	    </GeneralSettings>
 	  </Escc.ActiveDirectory>
 	</configuration>
+
+Reading back settings on a single domain:
+
+	var settings = new ActiveDirectorySettingsFromConfiguration();
+	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword);
+
+Reading back settings when working with multiple domains:
+
+	var userToQuery = @"domain\user";
+	var settings = new ActiveDirectorySettingsFromConfiguration();
+	var searcher = new LdapActiveDirectorySearcher(
+		settings.LdapPathForUser(userToQuery), 	
+		settings.LdapUsernameForUser(userToQuery), 
+		settings.LdapPasswordForUser(userToQuery)
+	);

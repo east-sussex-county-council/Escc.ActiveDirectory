@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Configuration;
-using System.Linq;
-using System.Text;
 
 namespace Escc.ActiveDirectory
 {
@@ -41,7 +39,7 @@ namespace Escc.ActiveDirectory
         }
 
         /// <summary>
-        /// Gets the LDAP path to be used when querying.
+        /// Gets the LDAP path to be used when querying the <see cref="DefaultDomain"/>.
         /// </summary>
         /// <value>
         /// The LDAP path, eg LDAP://hostname.
@@ -50,12 +48,46 @@ namespace Escc.ActiveDirectory
         {
             get
             {
-                if (_generalSettings != null)
-                {
-                    return _generalSettings["LdapPath"];
-                }
-                return String.Empty;
+                return LdapPathForDomain(DefaultDomain);
             }
+        }
+
+        /// <summary>
+        /// Gets the LDAP path to be used when querying a specific user, based on the domain they belong to.
+        /// </summary>
+        /// <param name="username">The username, including the user's domain.</param>
+        /// <exception cref="System.ArgumentException">username</exception>
+        /// <exception cref="System.FormatException">username</exception>
+        /// <returns>
+        /// The LDAP path, eg LDAP://hostname.
+        /// </returns>
+        public string LdapPathForUser(string username)
+        {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException(nameof(username));
+            string domain = ExtractDomainFromUsername(username);
+            return LdapPathForDomain(domain);
+        }
+
+        /// <summary>
+        /// Gets the LDAP path to be used when querying a specific domain.
+        /// </summary>
+        /// <param name="domain">The domain.</param>
+        /// <returns>
+        /// The LDAP path, eg LDAP://hostname.
+        /// </returns>
+        public string LdapPathForDomain(string domain)
+        {
+            if (_generalSettings != null)
+            {
+                var value = _generalSettings["LdapPath." + domain];
+                if (String.IsNullOrEmpty(value) && (String.IsNullOrEmpty(domain) || domain.ToUpperInvariant() == DefaultDomain?.ToUpperInvariant()))
+                {
+                    value = _generalSettings["LdapPath"];
+                }
+                return value;
+
+            }
+            return String.Empty;
         }
 
         /// <summary>
@@ -68,14 +100,43 @@ namespace Escc.ActiveDirectory
         {
             get
             {
-                if (_generalSettings != null)
-                {
-                    return _generalSettings["LdapUser"];
-                }
-                return String.Empty;
+                return LdapUsernameForDomain(DefaultDomain);   
             }
         }
 
+        /// <summary>
+        /// Gets the username of the account to be used when using LDAP queries when querying a specific domain.
+        /// </summary>
+        /// <returns>
+        /// The username.
+        /// </returns>
+        public string LdapUsernameForDomain(string domain)
+        {
+            if (_generalSettings != null)
+            {
+                var value = _generalSettings["LdapUser." + domain];
+                if (String.IsNullOrEmpty(value) && (String.IsNullOrEmpty(domain) || domain.ToUpperInvariant() == DefaultDomain?.ToUpperInvariant()))
+                {
+                    value = _generalSettings["LdapUser"];
+                }
+                return value;
+            }
+            return String.Empty;
+        }
+
+        /// <summary>
+        /// Gets the username of the account to be used when using LDAP queries for a specific user, based on the domain they belong to.
+        /// </summary>
+        /// <param name="username">The username, including the user's domain.</param>
+        /// <returns>The username.</returns>
+        /// <exception cref="System.ArgumentException">username</exception>
+        /// <exception cref="System.FormatException">username</exception>
+        public string LdapUsernameForUser(string username)
+        {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException(nameof(username));
+            string domain = ExtractDomainFromUsername(username);
+            return LdapUsernameForDomain(domain);
+        }
 
         /// <summary>
         /// Gets the password of the account to be used when using LDAP queries.
@@ -87,12 +148,50 @@ namespace Escc.ActiveDirectory
         {
             get
             {
-                if (_generalSettings != null)
-                {
-                    return _generalSettings["LdapPassword"];
-                }
-                return String.Empty;
+                return LdapPasswordForDomain(DefaultDomain);
             }
+        }
+
+        /// <summary>
+        /// Gets the password of the account to be used when using LDAP queries when querying a specific domain.
+        /// </summary>
+        /// <returns>
+        /// The password.
+        /// </returns>
+        public string LdapPasswordForDomain(string domain)
+        {
+            if (_generalSettings != null)
+            {
+                var value = _generalSettings["LdapPassword." + domain];
+                if (String.IsNullOrEmpty(value) && (String.IsNullOrEmpty(domain) || domain.ToUpperInvariant() == DefaultDomain?.ToUpperInvariant()))
+                {
+                    value = _generalSettings["LdapPassword"];
+                }
+                return value;
+            }
+            return String.Empty;
+        }
+
+        /// <summary>
+        /// Gets the password of the account to be used when using LDAP queries for a specific user, based on the domain they belong to.
+        /// </summary>
+        /// <param name="username">The username, including the user's domain.</param>
+        /// <returns>The password</returns>
+        /// <exception cref="System.ArgumentException">username</exception>
+        /// <exception cref="System.FormatException">username</exception>
+        public string LdapPasswordForUser(string username)
+        {
+            if (string.IsNullOrEmpty(username)) throw new ArgumentException(nameof(username));
+            string domain = ExtractDomainFromUsername(username);
+            return LdapPasswordForDomain(domain);
+        }
+
+        private static string ExtractDomainFromUsername(string username)
+        {
+            string[] split = username.Split('\\');
+            if (split.Length != 2) throw new FormatException(nameof(username) + @" must be in the format domain\user");
+            string domain = split[0];
+            return domain;
         }
     }
 }

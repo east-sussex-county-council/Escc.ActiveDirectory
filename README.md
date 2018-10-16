@@ -10,11 +10,10 @@ You don't need this library to find the current username:
 
 ## Check whether a user is in a group
 
-You can check whether the current user of an ASP.NET application is a member of an Active Directory group (or list of groups) using the information already available in ASP.NET, storing the result in session to avoid repeated queries by the application. 
+You can check whether the current user of an ASP.NET application is a member of an Active Directory group (or list of groups) using the information already available in ASP.NET. 
 
 	var defaultDomain = new ActiveDirectorySettingsFromConfiguration().DefaultDomain;
-	var sessionCache = new SessionPermissionsResultCache();
-	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain, sessionCache);
+	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain);
 	bool result = permissions.UserIsInGroup(new [] { "group1, "group2" });
 	Dictionary<string, bool> groupResults = permissions.UserIsInGroups(new [] { "group1, "group2" });
 
@@ -117,6 +116,18 @@ When an ASPX page tries to use protected resources (such as files or folders) on
 	impersonator.UndoUserImpersonation();
 
 The interface `IImpersonationWrapper` lets you specify your own implementations of `ImpersonatorWrapper`; 
+
+## Caching results
+
+Some classes allow you to store the result in a cache to avoid repeated queries by the application. The default implementation is an in-memory cache.
+
+	// Setup
+	var settings = new ActiveDirectorySettingsFromConfiguration();
+	var cache = new ActiveDirectoryMemoryCache();
+	
+	// Example uses
+	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain, cache);
+	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword, cache);
 
 ## Configuration settings
 

@@ -9,11 +9,11 @@ using System.Web;
 namespace Escc.ActiveDirectory
 {
     /// <summary>
-    /// Gets a user's groups using the LogonUserIdentity in the current request using <see cref="HttpContext" />
-    /// </summary>
+    /// Gets a user's groups using the LogonUserIdentity in the current request using <see cref="HttpContext" /></summary>
+    /// <seealso cref="Escc.ActiveDirectory.IGroupMembershipChecker" />
     public class LogonIdentityGroupMembershipChecker : IGroupMembershipChecker
     {
-        private readonly IPermissionsResultCache _resultCache;
+        private readonly IActiveDirectoryCache _cache;
         private readonly string _defaultDomain;
         private readonly WindowsIdentity _userIdentity;
 
@@ -21,12 +21,12 @@ namespace Escc.ActiveDirectory
         /// Initializes a new instance of the <see cref="LogonIdentityGroupMembershipChecker" /> class.
         /// </summary>
         /// <param name="defaultDomain">The default domain.</param>
-        /// <param name="resultCache">The result cache.</param>
-        public LogonIdentityGroupMembershipChecker(string defaultDomain = null, IPermissionsResultCache resultCache = null)
+        /// <param name="cache">The result cache.</param>
+        public LogonIdentityGroupMembershipChecker(string defaultDomain = null, IActiveDirectoryCache cache = null)
         {
             if (HttpContext.Current == null) throw new InvalidOperationException("LogonIdentityGroupMembershipChecker requires a valid HTTP context");
 
-            _resultCache = resultCache;
+            _cache = cache;
             _userIdentity = HttpContext.Current.Request.LogonUserIdentity;
 
             // default domain prefix to remove if present, normalised to uppercase
@@ -35,7 +35,7 @@ namespace Escc.ActiveDirectory
                 _defaultDomain = defaultDomain.ToUpperInvariant() + "\\";
             }
         }
-        
+
         /// <summary>
         /// Gets the names of the groups a user is a member of.
         /// </summary>
@@ -47,7 +47,7 @@ namespace Escc.ActiveDirectory
             {
                 foreach (IdentityReference group in _userIdentity.Groups)
                 {
-                    var groupName = group.Translate(typeof (NTAccount)).ToString().ToUpper(CultureInfo.CurrentCulture);
+                    var groupName = group.Translate(typeof(NTAccount)).ToString().ToUpper(CultureInfo.CurrentCulture);
                     groupNames.Add(groupName);
                 }
             }
@@ -77,10 +77,11 @@ namespace Escc.ActiveDirectory
             if (groupNames == null || groupNames.Count == 0) throw new ArgumentNullException(nameof(groupNames), "groupNames cannot be null or an empty list");
 
             // If we've already done the check, return the previous result
-            if (_resultCache != null)
+            string cacheKey = CreateCacheKey(groupNames);
+            if (_cache != null)
             {
-                var storedResult = _resultCache.CheckGroupMatchResult(groupNames);
-                if (storedResult.HasValue) return storedResult.Value;
+                var storedResult = _cache.CheckForSavedValue<BooleanResult>(cacheKey);
+                if (storedResult != null) return storedResult.Result;
             }
 
             var len = groupNames.Count;
@@ -105,13 +106,33 @@ namespace Escc.ActiveDirectory
                 if (groupNames.Contains(groupName))
                 {
                     // Stash the result so we don't have to do this check again
-                    if (_resultCache != null) _resultCache.SaveGroupMatchResult(groupNames, true);
+                    if (_cache != null)
+                    {
+                        _cache.SaveValue(cacheKey, new BooleanResult() { Result = true });
+                    }
                     return true;
                 }
             }
 
-            if (_resultCache != null) _resultCache.SaveGroupMatchResult(groupNames, false);
+            if (_cache != null)
+            {
+                _cache.SaveValue(cacheKey, new BooleanResult() { Result = false });
+            }
             return false;
+        }
+
+
+        /// <summary>
+        /// Private class that allows a boolean to be stored in cache where C# generics requires a reference type
+        /// </summary>
+        private class BooleanResult
+        {
+            public bool Result { get; set; }
+        }
+
+        private static string CreateCacheKey(IList<string> groupNames)
+        {
+            return String.Join(String.Empty, groupNames.ToArray()).ToUpperInvariant().GetHashCode().ToString(CultureInfo.InvariantCulture);
         }
 
         /// <summary>

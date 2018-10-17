@@ -42,7 +42,7 @@ This requires an `LdapActiveDirectorySearcher` created with instance with LDAP c
  	searcher.SearchForUsersBySamAccountName("incompleteuserna", propertiesToLoad);
 
 	// Get multiple users using ambiguous name resolution
-    searcher.SearchForUsers("example", IList<string> propertiesToLoad);
+    searcher.SearchForUsers("example", propertiesToLoad);
 
 The result is returned much faster if you specify just the properties you need, but if the `propertiesToLoad` argument is `null` or has no items then all available properties will be returned. The possible properties are:
 
@@ -128,6 +128,13 @@ Some classes allow you to store the result in a cache to avoid repeated queries 
 	// Example uses
 	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain, cache);
 	var searcher = new LdapActiveDirectorySearcher(settings.LdapPath, settings.LdapUsername, settings.LdapPassword, cache);
+
+## Cleaning up the data retrieved
+
+If you're working with Orbis partnership user data you can optionally clean up some common problems as soon as you get the data.
+
+	var users = searcher.SearchForUsers("example", propertiesToLoad);
+	new OrbisPartnersDataTransformer().TransformUsers(users);
 
 ## Configuration settings
 

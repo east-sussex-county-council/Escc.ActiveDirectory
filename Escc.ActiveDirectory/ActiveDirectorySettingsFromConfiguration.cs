@@ -189,7 +189,7 @@ namespace Escc.ActiveDirectory
         private static string ExtractDomainFromUsername(string username)
         {
             string[] split = username.Split('\\');
-            if (split.Length != 2) throw new FormatException(nameof(username) + @" must be in the format domain\user");
+            if (split.Length != 2) throw new FormatException($@"{nameof(username)} must be in the format domain\user. {nameof(username)} was {username}");
             string domain = split[0];
             return domain;
         }

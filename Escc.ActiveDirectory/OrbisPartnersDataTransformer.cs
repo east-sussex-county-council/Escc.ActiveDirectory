@@ -12,6 +12,16 @@ namespace Escc.ActiveDirectory
     /// </summary>
     public class OrbisPartnersDataTransformer
     {
+        private static readonly Dictionary<string, string> _surreyDepartments = new Dictionary<string, string>()
+        {
+            { "BUS", "Business Services" },
+            { "CSF", "Children, Families, Learning and Communities" },
+            { "FIN", "Finance Service" },
+            { "ASC", "Health, Wellbeing and Adult Social Care" },
+            { "LDC", String.Empty },
+            { "EI", String.Empty }
+        };
+
         /// <summary>
         /// Transforms the data for multiple users.
         /// </summary>
@@ -39,9 +49,45 @@ namespace Escc.ActiveDirectory
                 throw new ArgumentNullException(nameof(user));
             }
 
+            FixName(user);
+            FixPhoneField(user);
             FixCompanyField(user);
             FixDepartmentField(user);
         }
+
+        /// <summary>
+        /// Surrey puts the department abbreviation after the name
+        /// </summary>
+        /// <param name="user">The user.</param>
+        private void FixName(ActiveDirectoryUser user)
+        {
+            if (String.IsNullOrEmpty(user.Name)) return;
+
+            foreach (var departmentAbbreviation in _surreyDepartments.Keys)
+            {
+                if (user.Name.EndsWith(" " + departmentAbbreviation))
+                {
+                    user.Name = user.Name.Substring(0,user.Name.Length-departmentAbbreviation.Length-1);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Surrey put free text notes in their phone field, but there are some common phrases we can look for to remove them.
+        /// </summary>
+        /// <param name="user">The user.</param>
+        private void FixPhoneField(ActiveDirectoryUser user)
+        {
+            if (String.IsNullOrEmpty(user.TelephoneNumber)) return;
+
+            if (user.TelephoneNumber.Contains("public use number") || user.TelephoneNumber.Contains("supply your phone number"))
+            {
+                user.TelephoneNumber = String.Empty;
+            }
+
+            // Normalise punctuation
+            user.TelephoneNumber = user.TelephoneNumber.Replace("(", String.Empty).Replace(")", String.Empty);
+      }
 
         /// <summary>
         /// Surrey don't populate their Company field, and East Sussex uses an abbreviation.
@@ -69,9 +115,13 @@ namespace Escc.ActiveDirectory
                 case "Surrey County Council":
                     if (!string.IsNullOrEmpty(user.Department))
                     {
-                        if (user.Department.StartsWith("BUS ")) user.Department = "Business Services";
-                        if (user.Department.StartsWith("CSF ")) user.Department = "Children's Services";
-                        if (user.Department.StartsWith("FIN ")) user.Department = "Finance Service";
+                        foreach (var departmentAbbreviation in _surreyDepartments.Keys)
+                        {
+                            if (user.Department.StartsWith(departmentAbbreviation + " ") && !String.IsNullOrEmpty(_surreyDepartments[departmentAbbreviation]))
+                            {
+                                user.Department = _surreyDepartments[departmentAbbreviation];
+                            }
+                        }
                     }
                     break;
 

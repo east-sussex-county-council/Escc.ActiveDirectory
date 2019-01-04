@@ -17,6 +17,17 @@ namespace Escc.ActiveDirectory.Tests
             Assert.AreEqual("John Smith", user.Name);
         }
 
+        [Test]
+        public void SurreyDepartmentSuffixIsRemovedFromDisplayName()
+        {
+            var user = new ActiveDirectoryUser() { DisplayName = "John Smith BUS" };
+            var transformer = new OrbisPartnersDataTransformer();
+
+            transformer.TransformUser(user);
+
+            Assert.AreEqual("John Smith", user.DisplayName);
+        }
+
         [TestCase("No public use number given")]
         [TestCase("Please supply your phone number using the change details link.Th")]
         public void SurreyNoPhoneNumberTextIsRemoved(string phoneNumber)

@@ -49,7 +49,8 @@ namespace Escc.ActiveDirectory
                 throw new ArgumentNullException(nameof(user));
             }
 
-            FixName(user);
+            user.Name = FixName(user.Name);
+            user.DisplayName = FixName(user.DisplayName);
             FixPhoneField(user);
             FixCompanyField(user);
             FixDepartmentField(user);
@@ -58,18 +59,21 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Surrey puts the department abbreviation after the name
         /// </summary>
-        /// <param name="user">The user.</param>
-        private void FixName(ActiveDirectoryUser user)
+        /// <param name="name">The user's name.</param>
+        private string FixName(string name)
         {
-            if (String.IsNullOrEmpty(user.Name)) return;
-
-            foreach (var departmentAbbreviation in _surreyDepartments.Keys)
+            if (!String.IsNullOrEmpty(name))
             {
-                if (user.Name.EndsWith(" " + departmentAbbreviation))
+                foreach (var departmentAbbreviation in _surreyDepartments.Keys)
                 {
-                    user.Name = user.Name.Substring(0,user.Name.Length-departmentAbbreviation.Length-1);
+                    if (name.EndsWith(" " + departmentAbbreviation))
+                    {
+                        name = name.Substring(0, name.Length - departmentAbbreviation.Length - 1);
+                    }
                 }
             }
+
+            return name;
         }
 
         /// <summary>

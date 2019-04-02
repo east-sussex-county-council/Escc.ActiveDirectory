@@ -14,14 +14,14 @@ You can check whether the current user of an ASP.NET application is a member of 
 
 	var defaultDomain = new ActiveDirectorySettingsFromConfiguration().DefaultDomain;
 	var permissions = new LogonIdentityGroupMembershipChecker(defaultDomain);
-	bool result = permissions.UserIsInGroup(new [] { "group1, "group2" });
+	bool result = permissions.UserIsInGroup("group1");
 	Dictionary<string, bool> groupResults = permissions.UserIsInGroups(new [] { "group1, "group2" });
 
 You can also check whether a user is in a group (or list of groups) based on their `WindowsIdentity`. When using a `WindowsIdentity` the `defaultDomain` and `resultCache` options are not supported.
 
 	var userToCheck = WindowsIdentity.GetCurrent();
 	var permissions = new WindowsIdentityGroupMembershipChecker(userToCheck);
-	bool result = permissions.UserIsInGroup(new [] { "group1, "group2" })
+	bool result = permissions.UserIsInGroup("group1");
 	Dictionary<string, bool> groupResults = permissions.UserIsInGroups(new[] { "group1", "group2" })
 
 Both of these classes implement the `IGroupMembershipChecker` interface.

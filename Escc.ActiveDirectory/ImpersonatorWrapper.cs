@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Web.Compilation;
 
@@ -20,11 +21,16 @@ namespace Escc.ActiveDirectory
         /// <param name="domain">The domain.</param>
         /// <param name="password">The password.</param>
         /// <returns></returns>
+        [SecuritySafeCritical]
         public bool ImpersonateUser(string username, string domain, string password)
         {
             return Impersonator.ImpersonateUser(username, domain, password);
         }
 
+        /// <summary>
+        /// Ends impersonation begun using <see cref="ImpersonateUser"/>.
+        /// </summary>
+        [SecuritySafeCritical]
         public void UndoUserImpersonation()
         {
             Impersonator.UndoUserImpersonation();

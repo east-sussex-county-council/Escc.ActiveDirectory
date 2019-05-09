@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Security.Principal;
 using System.Runtime.InteropServices;
+using System.Security;
 
 namespace Escc.ActiveDirectory
 {
@@ -44,6 +45,7 @@ namespace Escc.ActiveDirectory
         /// <param name="domain">The domain.</param>
         /// <param name="pwd">The password.</param>
         /// <returns></returns>
+        [SecuritySafeCritical]
         public static bool ImpersonateUser(string usr, string domain, string pwd)
         {
             bool retval = false;
@@ -80,6 +82,7 @@ namespace Escc.ActiveDirectory
         /// <summary>
         /// Ends impersonation begun using <see cref="ImpersonateUser"/>.
         /// </summary>
+        [SecuritySafeCritical]
         public static void UndoUserImpersonation()
         {
             ImpersonationContext.Undo();
